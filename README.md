@@ -28,6 +28,8 @@ Asbru - A Data-oriented Service Mesh
 
 `Asbru` will be able to send metrics to apollo studio, use dataloaders patterns, store cache data into an external datastorage, be served serverless and even more.
 
+`Asbru` is an opensource project based on Viaduct, an Airbnb's project presented [here](https://www.youtube.com/watch?v=xxk9MWCk7cM).
+
 - [Documentation](https://docs.rs/asbru/)
 
 _Tested at Rust version: `rustc 1.53.0 (53cb7b09b 2021-06-17)`_
