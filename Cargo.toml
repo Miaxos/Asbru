@@ -1,0 +1,18 @@
+[package]
+name = "asbru"
+version = "0.0.1"
+authors = ["Anthony Griffon <anthony@griffon.one>"]
+description = "A Data-oriented service mesh generator"
+readme = "README.md"
+repository = "https://github.com/miaxos/asbru"
+documentation = "https://docs.rs/asbru"
+license = "MIT"
+keywords = ["async_graphql", "async", "graphql", "service-mesh", "codegen"]
+categories = ["network-programming", "asynchronous"]
+edition = "2018"
+
+[features]
+default = []
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
