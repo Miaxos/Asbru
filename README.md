@@ -50,3 +50,4 @@ No features right now, but soon.
 * [Viaduct presentation](https://www.youtube.com/watch?v=xxk9MWCk7cM)
 * [GraphQL](https://graphql.org)
 * [Async Graphql Crates](https://github.com/async-graphql/async-graphql)
+* [Codegen for async_graphql](https://github.com/atsuhiro/codegen-for-async-graphql)
