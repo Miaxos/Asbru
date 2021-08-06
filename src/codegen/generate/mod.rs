@@ -37,6 +37,10 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P) -> Result<(), GenericErrors>
     generate_cargo_toml(output.as_ref().join(Path::new("Cargo.toml")));
 
     // For each entity -> Create
+    // Object type -> likely to be type in the Schema,
+    // so we need to create a domain object type
+    // we also need the application type
+    // we should also add the directive of how it's called
 
     context.scalar_types();
     Ok(())
