@@ -33,9 +33,10 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P) -> Result<(), GenericErrors>
     // Create a directory with src folder
     let src = output.as_ref().join(Path::new("src/"));
     fs::create_dir_all(src).map_err(GenericErrors::CreateOutputDirectoryError)?;
-
     // Create a Cargo.toml
     generate_cargo_toml(output.as_ref().join(Path::new("Cargo.toml")));
+
+    // For each entity -> Create
 
     context.scalar_types();
     Ok(())
