@@ -1,3 +1,4 @@
+use crate::codegen::context::Context;
 use async_graphql_parser::{parse_schema, types::ServiceDocument};
 use std::fs;
 use std::io;
@@ -22,8 +23,10 @@ fn parse<S: AsRef<str>>(schema: S) -> Result<ServiceDocument, GenericErrors> {
     parse_schema(&schema).map_err(GenericErrors::ParserError)
 }
 
-pub fn generate_form_path<P: AsRef<Path>>(path: P) {
-    let schema = open(&path);
-    let doc = parse_schema(&schema);
-    println!("{:?}", &doc);
+pub fn generate_form_path<P: AsRef<Path>>(path: P) -> Result<(), GenericErrors> {
+    let schema = open(&path).and_then(parse)?;
+    let context = Context::new(&schema);
+
+    context.scalar_types();
+    Ok(())
 }
