@@ -22,6 +22,15 @@ pub fn build_app() -> App<'static, 'static> {
                 .takes_value(true)
                 .help("Select the schema.graphql file to generate the project from")
                 .required(true),
+        )
+        .arg(
+            Arg::with_name("output")
+                .long("output")
+                .short("o")
+                .overrides_with("output")
+                .takes_value(true)
+                .help("Create the project here")
+                .required(true),
         );
 
     app

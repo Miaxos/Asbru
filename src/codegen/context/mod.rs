@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::codegen::config::Config;
 use async_graphql_parser::types::{
     DirectiveDefinition, SchemaDefinition, ServiceDocument, TypeDefinition, TypeKind,
@@ -9,13 +11,18 @@ use async_graphql_parser::types::{
 /// Generators will be able to read & write inside that context to codegen their files.
 /// You can view this struct as the Global Environment for Asbru
 pub struct Context<'a> {
+    /// Source directory for codegen
+    directory: &'a Path,
     // config: &'a Config,
     schema: &'a ServiceDocument,
 }
 
 impl<'a> Context<'a> {
-    pub fn new(schema: &'a ServiceDocument) -> Self {
-        Self { schema }
+    pub fn new<P: AsRef<Path>>(directory: &'a P, schema: &'a ServiceDocument) -> Self {
+        Self {
+            directory: directory.as_ref(),
+            schema,
+        }
     }
 
     fn type_definition(&self) -> Vec<&TypeDefinition> {
