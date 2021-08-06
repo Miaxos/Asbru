@@ -7,12 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.2]
+
 ### Feat
 
--  Basic application structure for interacting with the cli
--  Open & Parse Schema
--  Add a Cargo.toml generation
--  Readme is better now
+-   Basic application structure for interacting with the cli
+-   Open & Parse Schema
+-   Add a Cargo.toml generation
+-   Readme is better now
 
 ## [0.1.0]
 
@@ -20,4 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Boot repo
 
-[Unreleased]: https://github.com/Miaxos/asbru/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/Miaxos/asbru/compare/v0.0.2...HEAD
+
+[0.0.2]: https://github.com/Miaxos/asbru/compare/v0.0.1...v0.0.2
