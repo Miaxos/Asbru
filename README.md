@@ -23,6 +23,7 @@ Asbru - A Data-oriented Service Mesh
 <br />
 <br />
 
+/!\ WIP: Asbru won't be usable until version 0.1.0 /!\
 
 `Asbru` is an `async_graphql` Data-oriented Service Mesh generator: it'll generate an `async_graphql` project from a schema with resolvers, dataloaders, data-transformation. It'll create a Data-oriented service mesh from your schema so you'll just have to describe your microservices with your described schema to have a Data-Oriented Service Mesh like Airbnb's.
 
@@ -34,12 +35,37 @@ Asbru - A Data-oriented Service Mesh
 
 _Tested at Rust version: `rustc 1.53.0 (53cb7b09b 2021-06-17)`_
 
+## Rendered GraphQL
+
+The rendered code is split accros three folders following an architecture inspired by the Domain Driven Design with 3 layers:
+
+| main.rs
+| schema.rs
+| application/
+|   entity/entity.rs
+|   entity/query.rs
+|   entity/mutation.rs
+| domain/
+|   entity/entity.rs
+| infrastructure/
+|   http.rs
+|   db.rs
+|   ...
+
+`infrastructure` will contains every code and definitions structuring the whole application, each files should describe a high-level API which abstract the implementation, in practise, it might be coupled with the implementation.
+For instance, instead of using directly `reqwest` to do http call, we create a higher level API, which describe how to do a HTTP call, and we provide an implementation for it with `reqwest`.
+
+`domain` will describe our domains data, which called are made to call an entity, the associated dataloaders.
+
+`application` will describe entity with a GraphQL implementation to describe query, mutations, subscriptions.
+
 ## TODO
 
 * [] Manage a configuration files.
 * [] Codegen a `async_graphql` layout
 * [] Architecture & Connect to services with a directive (at Airbnb it's something like `@serviceBackedNode`).
 (...)
+
 
 ## Crate features
 

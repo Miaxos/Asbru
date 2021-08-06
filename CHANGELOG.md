@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Feat
+
+-  Basic application structure for interacting with the cli
+-  Open & Parse Schema
+-  Add a Cargo.toml generation
+
 ## [0.1.0]
 
 ### Added
