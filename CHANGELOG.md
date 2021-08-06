@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -  Basic application structure for interacting with the cli
 -  Open & Parse Schema
 -  Add a Cargo.toml generation
+-  Readme is better now
 
 ## [0.1.0]
 
