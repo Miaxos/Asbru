@@ -63,9 +63,13 @@ For instance, instead of using directly `reqwest` to do http call, we create a h
 
 ## TODO
 
-* [] Manage a configuration files.
-* [] Codegen a `async_graphql` layout
-* [] Architecture & Connect to services with a directive (at Airbnb it's something like `@serviceBackedNode`).
+* ❌ Manage a configuration files.
+* ❌ Codegen a `async_graphql` layout
+  - ✅ Object generation layout
+  - ✅ Modfiles
+  - ✅ Cargo
+  - ✅ Rust types on GraphQL scalars
+* ❌ Architecture & Connect to services with a directive (at Airbnb it's something like `@serviceBackedNode`).
 (...)
 
 

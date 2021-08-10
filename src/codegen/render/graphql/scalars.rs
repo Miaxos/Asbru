@@ -3,11 +3,13 @@ use async_graphql_parser::types::{BaseType, Type};
 use crate::codegen::generate::GenericErrors;
 
 pub trait ToRustType {
+    /// Internal function, won't check the nullability of the type
     fn type_name(&self) -> Result<String, GenericErrors>;
     /// Transform a Type to a Rust type.
     /// TODO: Should add Scope to be able to dynamicly add scalars import when needed.
     fn to_rust_type(&self) -> Result<String, GenericErrors>;
 }
+
 impl ToRustType for Type {
     fn type_name(&self) -> Result<String, GenericErrors> {
         let result = match &self.base {
