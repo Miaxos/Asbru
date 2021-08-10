@@ -33,7 +33,10 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P) -> Result<(), GenericErrors>
     // Create a directory with src folder
     let src = output.as_ref().join(Path::new("src/"));
     fs::create_dir_all(src).map_err(GenericErrors::CreateOutputDirectoryError)?;
+
     // Create a Cargo.toml
+    // Maybe: The Cargo.toml should be generated last, because we'll be able to describe what we are using
+    // in every other files, and generate the dependencies from it.
     generate_cargo_toml(output.as_ref().join(Path::new("Cargo.toml")));
 
     // For each entity -> Create
@@ -43,5 +46,6 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P) -> Result<(), GenericErrors>
     // we should also add the directive of how it's called
 
     context.scalar_types();
+    context.interface_types();
     Ok(())
 }

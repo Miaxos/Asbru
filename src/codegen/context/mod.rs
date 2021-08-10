@@ -2,8 +2,8 @@ use std::path::Path;
 
 use crate::codegen::config::Config;
 use async_graphql_parser::types::{
-    DirectiveDefinition, SchemaDefinition, ServiceDocument, TypeDefinition, TypeKind,
-    TypeSystemDefinition,
+    DirectiveDefinition, InterfaceType, SchemaDefinition, ServiceDocument, TypeDefinition,
+    TypeKind, TypeSystemDefinition,
 };
 
 /// The context is like the Scope for the whole codegen, it's where we'll put every options for the
@@ -68,5 +68,19 @@ impl<'a> Context<'a> {
                 _ => {}
             })
             .collect::<Vec<_>>();
+    }
+
+    /// Schema interfaces
+    pub fn interface_types(&self) -> Vec<TypeDefinition> {
+        self.type_definition()
+            .iter()
+            .filter_map(|type_def| match type_def.kind {
+                TypeKind::Interface(_) => {
+                    println!("{:?}", type_def);
+                    Some((*type_def).clone())
+                }
+                _ => None,
+            })
+            .collect::<Vec<_>>()
     }
 }
