@@ -24,6 +24,7 @@ Asbru - A Data-oriented Service Mesh
 <br />
 
 /!\ WIP: Asbru won't be usable until version 0.1.0 /!\
+/!\ The target is to have a MVP right now, so the code might be ugly sometimes, it's on purpose to create a prototype first. /!\
 
 `Asbru` is an `async_graphql` Data-oriented Service Mesh generator: it'll generate an `async_graphql` project from a schema with resolvers, dataloaders, data-transformation. It'll create a Data-oriented service mesh from your schema so you'll just have to describe your microservices with your described schema to have a Data-Oriented Service Mesh like Airbnb's.
 
@@ -63,9 +64,13 @@ For instance, instead of using directly `reqwest` to do http call, we create a h
 
 ## TODO
 
-* [] Manage a configuration files.
-* [] Codegen a `async_graphql` layout
-* [] Architecture & Connect to services with a directive (at Airbnb it's something like `@serviceBackedNode`).
+* ❌ Manage a configuration files.
+* ❌ Codegen a `async_graphql` layout
+  - ✅ Object generation layout
+  - ✅ Modfiles
+  - ✅ Cargo
+  - ✅ Rust types on GraphQL scalars
+* ❌ Architecture & Connect to services with a directive (at Airbnb it's something like `@serviceBackedNode`).
 (...)
 
 

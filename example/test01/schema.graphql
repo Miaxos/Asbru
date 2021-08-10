@@ -9,6 +9,8 @@ type Query {
   active: Bool!
 }
 
+directive @remote on OBJECT | INTERFACE
+
 type Mutation {
   createFriendMutation(
     input: CreateFriendMutationInput!
@@ -29,12 +31,13 @@ input CreateFriendMutationInput {
 
 scalar Url
 
-interface User {
+interface User @remote {
   id: ID!
   name: String!
 }
 
 type Friend implements User {
+  "id: The friend ID"
   id: ID!
   name: String!
 }
