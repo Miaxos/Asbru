@@ -37,6 +37,14 @@ We do not.
 
 If possible, we remove them.
 
+### Solution 1
+
+We'll immitate the `codegen-for-async-graphql` solution: create a wrapper for each type which will contain the Schema node.
+
+There will be a `Render` trait for these wrapper.
+
+The parser will create the AST, feed it to the Context, the Context will trigger the rendering.
+
 # Simple Codegen
 
 ## Header from a Schema ?

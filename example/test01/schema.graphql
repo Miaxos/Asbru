@@ -37,6 +37,7 @@ interface User @remote {
 }
 
 type Friend implements User {
+  "id: The friend ID"
   id: ID!
   name: String!
 }

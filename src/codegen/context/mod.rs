@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::codegen::config::Config;
+use crate::codegen::{config::Config, render::graphql::object::ObjectWrapper};
 use async_graphql_parser::types::{
     DirectiveDefinition, InterfaceType, SchemaDefinition, ServiceDocument, TypeDefinition,
     TypeKind, TypeSystemDefinition,
@@ -82,5 +82,26 @@ impl<'a> Context<'a> {
                 _ => None,
             })
             .collect::<Vec<_>>()
+    }
+
+    /// Object types
+    pub fn object_types(&self) -> Vec<ObjectWrapper> {
+        self.type_definition()
+            .iter()
+            .filter_map(|type_def| match type_def.kind {
+                TypeKind::Object(_) => {
+                    // println!("{:?}", type_def);
+                    Some(ObjectWrapper {
+                        doc: *type_def,
+                        context: self,
+                    })
+                }
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    }
+
+    pub fn directory(&self) -> &Path {
+        self.directory
     }
 }

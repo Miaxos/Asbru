@@ -1,5 +1,6 @@
 use crate::codegen::context::Context;
 use crate::codegen::render::cargo::generate_cargo_toml;
+use crate::codegen::render::render::Render;
 use async_graphql_parser::{parse_schema, types::ServiceDocument};
 use std::fs;
 use std::io;
@@ -14,6 +15,10 @@ pub enum GenericErrors {
     ParserError(#[from] async_graphql_parser::Error),
     #[error("Can't create the output directory")]
     CreateOutputDirectoryError(io::Error),
+    #[error("Generator error")]
+    GenericGeneratorError,
+    #[error("Generic IO issue")]
+    GenericIOError(#[from] io::Error),
 }
 
 /// Open a file
@@ -45,7 +50,15 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P) -> Result<(), GenericErrors>
     // we also need the application type
     // we should also add the directive of how it's called
 
-    context.scalar_types();
-    context.interface_types();
+    let result = context
+        .object_types()
+        .iter()
+        .map(|x| x.generate())
+        .collect::<Vec<_>>();
+
+    println!("|------------------------------|");
+    println!("|           Result             |");
+    println!("|------------------------------|");
+    println!("{:?}", &result);
     Ok(())
 }
