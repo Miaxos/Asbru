@@ -1,7 +1,4 @@
-use std::fs;
-use std::io::Write;
-use std::path::Path;
-
+use crate::codegen::render::graphql::scalars::ToRustType;
 use crate::codegen::{context::Context, generate::GenericErrors, render::render::Render};
 use async_graphql_parser::types::{TypeDefinition, TypeKind};
 use codegen::Scope;
@@ -54,19 +51,15 @@ impl<'a> ObjectWrapper<'a> {
             if len != 0 {
                 return None;
             }
-            object_struct.field(&x.node.name.node, format!("{}", &x.node.ty.node.base));
+            object_struct.field(&x.node.name.node, &x.node.ty.node.to_rust_type().unwrap());
             Some((&x.node.name.node, &x.node.description))
         })
         .collect::<Vec<_>>();
 
-        let output = self.context.directory();
-        let src = output.join(Path::new("src/domain/"));
-        fs::create_dir_all(&src).map_err(GenericErrors::CreateOutputDirectoryError)?;
-
-        let domain_object_file = src.join(Path::new(&self.domain_name()));
-
-        let mut f = fs::File::create(&domain_object_file)?;
-        f.write_all(scope.to_string().as_bytes())?;
+        self.context.create_a_new_file(
+            format!("domain/{}", &self.domain_name()),
+            scope.to_string().as_bytes(),
+        )?;
 
         Ok(())
     }
@@ -108,7 +101,7 @@ impl<'a> ObjectWrapper<'a> {
                         .unwrap_or(""),
                 )
                 // Scalar type
-                .ret(format!("{}", &x.node.ty.node.base))
+                .ret(format!("{}", &x.node.ty.node.to_rust_type().unwrap()))
                 .arg_ref_self()
                 .line("todo!()");
             // .field(&x.node.name.node, format!("{}", &x.node.ty.node.base));
