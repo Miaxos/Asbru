@@ -1,4 +1,4 @@
-# Directives about resolvers
+# Directives about resolvers - DRAFT
 ------------
 
 ## How do we write a resolver directive ?
@@ -109,4 +109,36 @@ The resolver for the query must be executed, it'll give us some Data, depending 
 - `SelectionTry`: Always execute the resolver for selected items.
 
 ## serviceBackedNode
+
+`serviceBackNode` is a directive for node. It'll describe how to fetch a Node when you have a partial data.
+
+
+## idToNode / Key
+
+This directive will allow you transform an id from your resolvers to a Node.
+
+Let's suppose you have
+
+```
+type Project {
+  id: ID!
+  name: String!
+}
+
+type User implements Node & IReservagtionGuest
+  @scope(scopes: ["viaduct: public", "viaduct:internal", "user-block"])
+  @serviceBackedNode(
+    service: "user-block"
+    methodName: "loadUsers"
+  )
+  @owners(list: "airbnb/user-block")
+{
+  id: ID!
+  firstName: String,
+  lastName: String,
+  email: String @key(path: "emailAddress")
+  project: Project @idToNode(path: "projectid"),
+}
+```
+
 ## serviceBackedConnection
