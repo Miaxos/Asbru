@@ -192,7 +192,7 @@ enum User {
 }
 ```
 
-Referecnes: https://async-graphql.github.io/async-graphql/en/define_interface.html
+References: https://async-graphql.github.io/async-graphql/en/define_interface.html
 
 ## How to render an Enum ?
 ## How to render an Union ?
