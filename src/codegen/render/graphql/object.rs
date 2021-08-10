@@ -51,6 +51,7 @@ impl<'a> ObjectWrapper<'a> {
             if len != 0 {
                 return None;
             }
+            // If it's another entity, we should have only their getting method.
             object_struct.field(&x.node.name.node, &x.node.ty.node.to_rust_type().unwrap());
             Some((&x.node.name.node, &x.node.description))
         })
