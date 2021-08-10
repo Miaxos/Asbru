@@ -116,14 +116,10 @@ impl<'a> ObjectWrapper<'a> {
         })
         .collect::<Vec<_>>();
 
-        let output = self.context.directory();
-        let src = output.join(Path::new("src/application/"));
-        fs::create_dir_all(&src).map_err(GenericErrors::CreateOutputDirectoryError)?;
-
-        let application_object_file = src.join(Path::new(&self.domain_name()));
-
-        let mut f = fs::File::create(&application_object_file)?;
-        f.write_all(scope.to_string().as_bytes())?;
+        self.context.create_a_new_file(
+            format!("application/{}", &self.domain_name()),
+            scope.to_string().as_bytes(),
+        )?;
 
         Ok(())
     }
