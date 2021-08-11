@@ -1,3 +1,4 @@
+use convert_case::{Case, Casing};
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::cell::RefMut;
@@ -198,13 +199,72 @@ impl<'a> Context<'a> {
     }
 
     /// Generate Service file
+    /// TODO Generate the service based on the transport definition
     fn generate_service_file(
         &self,
         service_name: &str,
         service: &Service,
     ) -> Result<(), GenericErrors> {
         let mut scope = Scope::new();
-        scope.import("reqwest", "*");
+        scope.import("reqwest", "Client");
+        scope.import("serde::de", "DeserializeOwned");
+        // scope.import("serde", "Deserialize");
+
+        // let result_struct = scope.new_struct(&format!("{}Result", service_name.to_case(Case::Camel))).derive("Deserialize");
+        //
+        /*
+                 *
+        use reqwest::Client;
+        use serde::{de::DeserializeOwned, Deserialize};
+
+        #[derive(Deserialize)]
+        pub struct TrucResult {
+            a_changed_key: String,
+        }
+
+        pub async fn truc_service<T: DeserializeOwned>(client: &Client) {
+            let bl = client
+                .post("url")
+                .body(
+                    serde_json::json!({
+                        "test": "blbl",
+                    })
+                    .to_string(),
+                )
+                .send()
+                .await?
+                .json::<T>()
+                .await?;
+        }
+                 */
+        let _service_fn = scope
+            .new_fn(&format!("{}_service", service_name))
+            .set_async(true)
+            .vis("pub")
+            .generic("T: DeserializeOwned")
+            .arg("client", "&Client")
+            .ret("anyhow::Result<T>")
+            .line(format!(
+                r#"
+    let result = client
+        .post("{endpoint}")
+        .body(
+            serde_json::json!({{
+                "test": "blbl",
+            }})
+            .to_string(),
+        )
+        .send()
+        .await
+        .map_err(|e| anyhow::anyhow!(e))?
+        .json::<T>()
+        .await
+        .map_err(|e| anyhow::anyhow!(e));
+        
+    result
+        "#,
+                endpoint = "https://truc.io"
+            ));
 
         self.create_a_new_file(
             format!("infrastructure/{}.rs", service_name),

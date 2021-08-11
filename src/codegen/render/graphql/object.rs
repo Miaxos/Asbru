@@ -143,8 +143,9 @@ fn process_fields_query(
     // The only directive applied to query right now are `serviceBackedQuery`
     // So, here, it should:
     // Check if the desired service is defined by the Config
-    // Call the desired service
-    // Try to parse the response into the result we want
+    // Create the desired transformation structure based on the directive and the transformation
+    // function to the desired structure.
+    // Call the desired service with the deserializable structure
     // Send the response
     println!("{:?}", x);
 }
