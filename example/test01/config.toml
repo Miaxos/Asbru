@@ -5,3 +5,16 @@ transport = { HTTP = { endpoint = "http://truc.io:9009", method = "GET" } }
 
 [services.truc]
 transport = { GRPC = { endpoint = "http://truc.io:8002" } }
+
+# Beer API Based on Open Brewery DB
+# https://www.openbrewerydb.org/documentation/01-listbreweries
+# A Good use case to work with Connection and pagination with the list
+# https://api.openbrewerydb.org/breweries
+[services.beers]
+transport = { HTTP = { endpoint = "https://api.openbrewerydb.org/breweries", method = "GET" } }
+
+# Pets store API
+# Usefull for test
+# https://petstore3.swagger.io/
+[services.pets]
+transport = { HTTP = { endpoint = "https://petstore3.swagger.io/api/v3/", method = "GET" } }

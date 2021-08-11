@@ -7,6 +7,7 @@ use super::generate::GenericErrors;
 #[derive(Deserialize, Serialize, Debug)]
 pub struct TransportHTTP {
     endpoint: String,
+    // REMOVE, a method is not assigned to a service.
     method: String,
 }
 
