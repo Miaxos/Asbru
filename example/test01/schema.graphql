@@ -56,7 +56,7 @@ type Me implements User {
   active: Bool
   friends(first: Int): FriendConnection!
   notifications: [Notification]
-  web: Url
+  web: String
   search(text: String!): [SearchResult]
 }
 

@@ -155,8 +155,21 @@ impl<'a> Context<'a> {
                 break;
             }
             src = src.join(Path::new(path));
+            println!("{} {:?}", i, &src);
 
             let mod_name = paths[i + 1].trim_end_matches(".rs");
+
+            if i == 0 {
+                let already = self.main_file().main_scope().to_string();
+                let pattern_to_write = format!("mod {};", &mod_name);
+
+                if already.find(&pattern_to_write).is_none() {
+                    self.main_file()
+                        .main_scope()
+                        .raw(&format!("mod {};", mod_name));
+                }
+                continue;
+            }
 
             let file_path = src.clone().join("mod.rs");
             let should_write = match fs::read_to_string(&file_path) {

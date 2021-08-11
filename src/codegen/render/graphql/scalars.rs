@@ -12,6 +12,11 @@ pub trait ToRustType {
 
     /// If it's a native GQL type
     fn is_native_gql_type(&self) -> Result<bool, GenericErrors>;
+
+    /// Get the Entity type without any wrapper.
+    /// If you have Option<String> it'll give you String
+    /// If you have Vec<Option<Vec<Option<Entity>>>> -> Entity
+    fn entity_type(&self) -> Result<String, GenericErrors>;
 }
 
 impl ToRustType for Type {
@@ -36,6 +41,21 @@ impl ToRustType for Type {
         Ok(result)
     }
 
+    fn entity_type(&self) -> Result<String, GenericErrors> {
+        let result = match &self.base {
+            BaseType::Named(name) => match name.as_str() {
+                "Bool" | "Boolean" => "bool",
+                "Int" => "i32",
+                "Float" => "f64",
+                "ID" => "ID",
+                _ => name.as_str(),
+            }
+            .to_string(),
+            BaseType::List(gql_type) => gql_type.entity_type()?,
+        };
+        Ok(result)
+    }
+
     fn to_rust_type(&self, remap_type: Option<&str>) -> Result<String, GenericErrors> {
         if self.nullable {
             Ok(format!("Option<{}>", self.type_name(remap_type)?))
@@ -47,6 +67,7 @@ impl ToRustType for Type {
     fn is_native_gql_type(&self) -> Result<bool, GenericErrors> {
         let result = match &self.base {
             BaseType::Named(name) => match name.as_str() {
+                "String" => true,
                 "Bool" | "Boolean" => true,
                 "Int" => true,
                 "Float" => true,

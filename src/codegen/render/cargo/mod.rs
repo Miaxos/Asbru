@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::fs;
 use std::io::Write;
 use std::{collections::HashMap, path::Path};
@@ -32,7 +33,8 @@ struct BinConfig {
 struct Cargo {
     package: PackageConfig,
     bin: Option<Vec<BinConfig>>,
-    dependencies: HashMap<String, String>,
+    #[serde(serialize_with = "toml::ser::tables_last")]
+    dependencies: HashMap<String, serde_json::Value>,
 }
 
 /// Generate a Cargo toml file
@@ -55,8 +57,25 @@ pub fn generate_cargo_toml<P: AsRef<Path>>(path: P) -> () {
         path: "src/main.rs".to_string(),
     };
 
-    let mut dependencies: HashMap<String, String> = HashMap::new();
-    dependencies.insert("async-graphql".to_string(), "1.0.0".to_string());
+    let mut dependencies: HashMap<String, serde_json::Value> = HashMap::new();
+    dependencies.insert(
+        "async-graphql".to_string(),
+        json!({
+            "version": "2.9.9",
+            "features": ["url", "chrono", "apollo_tracing", "unblock", "tracing"]
+        }),
+    );
+    dependencies.insert("anyhow".to_string(), json!("1.0.*"));
+    dependencies.insert(
+        "tokio".to_string(),
+        json!({
+            "version": "1",
+            "features": ["full"],
+        }),
+    );
+    dependencies.insert("serde_derive".to_string(), json!("1.0.*"));
+    dependencies.insert("serde".to_string(), json!("1.0.*"));
+    dependencies.insert("serde_json".to_string(), json!("1.0.*"));
 
     let cargo = Cargo {
         package,

@@ -1,7 +1,9 @@
+use std::sync::RwLock;
+
 use crate::codegen::render::graphql::scalars::ToRustType;
 use crate::codegen::{context::Context, generate::GenericErrors, render::render::Render};
 use async_graphql_parser::types::{TypeDefinition, TypeKind};
-use codegen::Scope;
+use codegen::{Impl, Scope};
 
 const DENYLIST: [&str; 3] = ["Query", "Mutation", "Subscription"];
 
@@ -29,6 +31,7 @@ impl<'a> ObjectWrapper<'a> {
 
         let object_struct = scope
             .new_struct(self.object_name())
+            .vis("pub")
             .derive("Serialize")
             .derive("Debug")
             .derive("Clone");
@@ -55,11 +58,23 @@ impl<'a> ObjectWrapper<'a> {
             let gql_name = &x.node.name.node;
 
             if gql_type.is_native_gql_type().unwrap() {
-                object_struct.field(gql_name, gql_type.to_rust_type(None).unwrap());
+                let type_name = &*gql_type.to_rust_type(None).unwrap();
+                object_struct.field(
+                    gql_name,
+                    match type_name {
+                        "ID" => "String",
+                        _ => type_name,
+                    },
+                );
             } else {
+                let type_name = &*gql_type.to_rust_type(Some("String")).unwrap();
+
                 object_struct.field(
                     &format!("{}_id", gql_name),
-                    gql_type.to_rust_type(Some("String")).unwrap(),
+                    match type_name {
+                        "ID" => "String",
+                        _ => type_name,
+                    },
                 );
             }
             // If it's another entity, we should have only their getting method.
@@ -79,13 +94,13 @@ impl<'a> ObjectWrapper<'a> {
     pub fn generate_application_file(&self) -> Result<(), GenericErrors> {
         let mut scope = Scope::new();
         scope.import("async_graphql", "*");
-        scope.import("serde", "Serialize");
         scope.import(
             &format!("crate::domain::{}", self.object_name().to_lowercase()),
             self.object_name(),
         );
 
-        let impl_struct = scope.new_impl(self.object_name()).r#macro("#[Object]");
+        let mut impl_struct = Impl::new(self.object_name());
+        impl_struct.r#macro("#[Object]");
 
         // Add field for it.
         let _fields = match &self.doc.kind {
@@ -101,6 +116,19 @@ impl<'a> ObjectWrapper<'a> {
             if len != 0 {
                 return None;
             }
+
+            let type_object = &x.node.ty.node;
+
+            if type_object.is_native_gql_type().unwrap() == false {
+                scope.import(
+                    &format!(
+                        "crate::domain::{}",
+                        &type_object.entity_type().unwrap().to_lowercase()
+                    ),
+                    &type_object.entity_type().unwrap(),
+                );
+            }
+
             let _function = impl_struct
                 .new_fn(&x.node.name.node)
                 .set_async(true)
@@ -119,6 +147,8 @@ impl<'a> ObjectWrapper<'a> {
             Some((&x.node.name.node, &x.node.description))
         })
         .collect::<Vec<_>>();
+
+        scope.push_impl(impl_struct);
 
         self.context.create_a_new_file(
             format!("application/{}", &self.domain_name()),
