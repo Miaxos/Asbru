@@ -1,0 +1,7 @@
+[services]
+
+[services.user]
+transport = { HTTP = { endpoint = "http://truc.io:9009", method = "GET" } }
+
+[services.truc]
+transport = { GRPC = { endpoint = "http://truc.io:8002" } }

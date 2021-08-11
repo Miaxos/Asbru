@@ -31,6 +31,15 @@ pub fn build_app() -> App<'static, 'static> {
                 .takes_value(true)
                 .help("Create the project here")
                 .required(true),
+        )
+        .arg(
+            Arg::with_name("config")
+                .long("config")
+                .short("c")
+                .overrides_with("config")
+                .takes_value(true)
+                .help("Should point to a .toml config file")
+                .required(true),
         );
 
     app

@@ -20,6 +20,7 @@ use super::render::cargo::MainFile;
 /// Generators will be able to read & write inside that context to codegen their files.
 /// You can view this struct as the Global Environment for Asbru
 pub struct Context<'a> {
+    config: &'a Config,
     /// Source directory for codegen
     directory: &'a Path,
     // config: &'a Config,
@@ -28,11 +29,16 @@ pub struct Context<'a> {
 }
 
 impl<'a> Context<'a> {
-    pub fn new<P: AsRef<Path>>(directory: &'a P, schema: &'a ServiceDocument) -> Self {
+    pub fn new<P: AsRef<Path>>(
+        directory: &'a P,
+        schema: &'a ServiceDocument,
+        config: &'a Config,
+    ) -> Self {
         let output = directory.as_ref();
         let main_path = output.join(Path::new("src/main.rs"));
 
         Self {
+            config,
             directory: output,
             schema,
             main_file: RefCell::new(MainFile::new(&main_path)),

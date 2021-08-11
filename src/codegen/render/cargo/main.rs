@@ -55,6 +55,7 @@ impl MainFile {
 }
 
 impl Render for MainFile {
+    // TODO: Use a shared config
     fn generate(&self) -> Result<(), crate::codegen::generate::GenericErrors> {
         let output = &self.path;
         self.main_scope().import("async_graphql", "Schema");

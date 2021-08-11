@@ -1,15 +1,26 @@
+directive @serviceBackedQuery(
+  service: String!,
+  "Method used to connect to the service"
+  methodName: String!,
+) on QUERY
+
+directive @remote on OBJECT | INTERFACE | QUERY
+
 schema {
   query: Query
   mutation: Mutation
 }
 
 type Query {
+  "userById"
+  userById(id: ID!): Me! @serviceBackedQuery(
+    service: "users",
+    methodName: "getUserRandom"
+  ),
   "me: Single-line comment"
   me: Me!
   active: Bool!
 }
-
-directive @remote on OBJECT | INTERFACE
 
 type Mutation {
   createFriendMutation(

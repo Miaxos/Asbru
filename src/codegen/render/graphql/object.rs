@@ -113,6 +113,7 @@ impl<'a> ObjectWrapper<'a> {
             // TODO Fields with args
             let len = x.node.arguments.len();
             if len != 0 {
+                process_fields_query(x, &mut scope, &mut impl_struct);
                 return None;
             }
 
@@ -131,6 +132,21 @@ impl<'a> ObjectWrapper<'a> {
 
         Ok(())
     }
+}
+
+/// For fields without args, we can get the data from the Domain side.
+fn process_fields_query(
+    x: &async_graphql_parser::Positioned<async_graphql_parser::types::FieldDefinition>,
+    scope: &mut Scope,
+    impl_struct: &mut Impl,
+) {
+    // The only directive applied to query right now are `serviceBackedQuery`
+    // So, here, it should:
+    // Check if the desired service is defined by the Config
+    // Call the desired service
+    // Try to parse the response into the result we want
+    // Send the response
+    println!("{:?}", x);
 }
 
 /// For fields without args, we can get the data from the Domain side.
@@ -183,12 +199,10 @@ fn add_field_definition_depending_on_type(
                 .line(format!("&self.{}", name))
                 .ret(format!("&{}", gql_type.to_rust_type(None).unwrap())),
         },
-        false => function
-            .line(format!("todo!(\"Should implement a dataloader\")"))
-            .ret(format!(
-                "FieldResult<{}>",
-                gql_type.to_rust_type(None).unwrap()
-            )),
+        false => function.line(format!("todo!(\"WIP\")")).ret(format!(
+            "FieldResult<{}>",
+            gql_type.to_rust_type(None).unwrap()
+        )),
     };
 }
 
