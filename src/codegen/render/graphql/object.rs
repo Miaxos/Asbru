@@ -1,11 +1,9 @@
-use std::sync::RwLock;
-
 use crate::codegen::render::graphql::scalars::ToRustType;
 use crate::codegen::{context::Context, generate::GenericErrors, render::render::Render};
-use async_graphql_parser::types::{TypeDefinition, TypeKind};
-use codegen::{Impl, Scope};
+use async_graphql_parser::types::{Type, TypeDefinition, TypeKind};
+use codegen::{Function, Impl, Scope};
 
-const DENYLIST: [&str; 3] = ["Query", "Mutation", "Subscription"];
+const DENYLIST: [&str; 2] = ["Mutation", "Subscription"];
 
 pub struct ObjectWrapper<'a> {
     // We store the whole type definition because we might need directives but it's an object, we
@@ -34,6 +32,7 @@ impl<'a> ObjectWrapper<'a> {
             .vis("pub")
             .derive("Serialize")
             .derive("Debug")
+            .derive("Default")
             .derive("Clone");
 
         // Add field for it.
@@ -60,7 +59,7 @@ impl<'a> ObjectWrapper<'a> {
             if gql_type.is_native_gql_type().unwrap() {
                 let type_name = &*gql_type.to_rust_type(None).unwrap();
                 object_struct.field(
-                    gql_name,
+                    &format!("pub {}", gql_name),
                     match type_name {
                         "ID" => "String",
                         _ => type_name,
@@ -70,7 +69,7 @@ impl<'a> ObjectWrapper<'a> {
                 let type_name = &*gql_type.to_rust_type(Some("String")).unwrap();
 
                 object_struct.field(
-                    &format!("{}_id", gql_name),
+                    &format!("pub {}_id", gql_name),
                     match type_name {
                         "ID" => "String",
                         _ => type_name,
@@ -117,32 +116,7 @@ impl<'a> ObjectWrapper<'a> {
                 return None;
             }
 
-            let type_object = &x.node.ty.node;
-
-            if type_object.is_native_gql_type().unwrap() == false {
-                scope.import(
-                    &format!(
-                        "crate::domain::{}",
-                        &type_object.entity_type().unwrap().to_lowercase()
-                    ),
-                    &type_object.entity_type().unwrap(),
-                );
-            }
-
-            let _function = impl_struct
-                .new_fn(&x.node.name.node)
-                .set_async(true)
-                .doc(
-                    &x.node
-                        .description
-                        .as_ref()
-                        .map(|x| x.node.as_ref())
-                        .unwrap_or(""),
-                )
-                // Scalar type
-                .ret(format!("{}", &x.node.ty.node.to_rust_type(None).unwrap()))
-                .arg_ref_self()
-                .line("todo!()");
+            process_field_without_args(x, &mut scope, &mut impl_struct);
             // .field(&x.node.name.node, format!("{}", &x.node.ty.node.base));
             Some((&x.node.name.node, &x.node.description))
         })
@@ -157,6 +131,65 @@ impl<'a> ObjectWrapper<'a> {
 
         Ok(())
     }
+}
+
+/// For fields without args, we can get the data from the Domain side.
+fn process_field_without_args(
+    x: &async_graphql_parser::Positioned<async_graphql_parser::types::FieldDefinition>,
+    scope: &mut Scope,
+    impl_struct: &mut Impl,
+) {
+    let type_object = &x.node.ty.node;
+    let type_name = &x.node.name.node;
+    if type_object.is_native_gql_type().unwrap() == false {
+        scope.import(
+            &format!(
+                "crate::domain::{}",
+                &type_object.entity_type().unwrap().to_lowercase()
+            ),
+            &type_object.entity_type().unwrap(),
+        );
+    }
+    let function = impl_struct
+        .new_fn(type_name)
+        .set_async(true)
+        .doc(
+            &x.node
+                .description
+                .as_ref()
+                .map(|x| x.node.as_ref())
+                .unwrap_or(""),
+        )
+        // Scalar type
+        .arg_ref_self();
+
+    add_field_definition_depending_on_type(scope, function, type_name, type_object);
+}
+
+/// Depending on the type, we can create a function definition.
+fn add_field_definition_depending_on_type(
+    _scope: &mut Scope,
+    function: &mut Function,
+    name: &str,
+    gql_type: &Type,
+) {
+    match gql_type.is_native_gql_type().unwrap() {
+        true => match &*gql_type.to_rust_type(None).unwrap() {
+            "String" => function.line(format!("&self.{}", name)).ret("&String"),
+            "ID" => function
+                .line(format!("self.{}.clone().into()", name))
+                .ret("ID"),
+            _ => function
+                .line(format!("&self.{}", name))
+                .ret(format!("&{}", gql_type.to_rust_type(None).unwrap())),
+        },
+        false => function
+            .line(format!("todo!(\"Should implement a dataloader\")"))
+            .ret(format!(
+                "FieldResult<{}>",
+                gql_type.to_rust_type(None).unwrap()
+            )),
+    };
 }
 
 impl<'a> Render for ObjectWrapper<'a> {
@@ -183,7 +216,6 @@ impl<'a> Render for ObjectWrapper<'a> {
         // ?
         self.generate_domain_file()?;
         self.generate_application_file()?;
-        // println!("{:?}", self.doc.name);
 
         // Create files
         Err(GenericErrors::GenericGeneratorError)

@@ -155,7 +155,6 @@ impl<'a> Context<'a> {
                 break;
             }
             src = src.join(Path::new(path));
-            println!("{} {:?}", i, &src);
 
             let mod_name = paths[i + 1].trim_end_matches(".rs");
 

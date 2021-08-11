@@ -65,6 +65,12 @@ pub fn generate_cargo_toml<P: AsRef<Path>>(path: P) -> () {
             "features": ["url", "chrono", "apollo_tracing", "unblock", "tracing"]
         }),
     );
+    dependencies.insert("async-graphql-warp".to_string(), json!("2.9.9"));
+    dependencies.insert("async-graphql-derive".to_string(), json!("2.9.9"));
+    dependencies.insert("async-graphql-parser".to_string(), json!("2.9.9"));
+
+    dependencies.insert("warp".to_string(), json!("0.3.0"));
+
     dependencies.insert("anyhow".to_string(), json!("1.0.*"));
     dependencies.insert(
         "tokio".to_string(),
@@ -76,6 +82,13 @@ pub fn generate_cargo_toml<P: AsRef<Path>>(path: P) -> () {
     dependencies.insert("serde_derive".to_string(), json!("1.0.*"));
     dependencies.insert("serde".to_string(), json!("1.0.*"));
     dependencies.insert("serde_json".to_string(), json!("1.0.*"));
+    dependencies.insert(
+        "tower".to_string(),
+        json!({
+            "version": "0.4.0",
+            "features": ["full"],
+        }),
+    );
 
     let cargo = Cargo {
         package,
