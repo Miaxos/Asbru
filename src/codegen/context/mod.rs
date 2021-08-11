@@ -6,7 +6,8 @@ use std::io;
 use std::io::{Read, Write};
 use std::{fs::File, path::Path};
 
-use crate::codegen::{config::Config, render::graphql::object::ObjectWrapper};
+use crate::codegen::generate::GenericErrors;
+use crate::codegen::{config::Config, config::Service, render::graphql::object::ObjectWrapper};
 use async_graphql_parser::types::{
     DirectiveDefinition, InterfaceType, SchemaDefinition, ServiceDocument, TypeDefinition,
     TypeKind, TypeSystemDefinition,
@@ -194,6 +195,32 @@ impl<'a> Context<'a> {
         }
 
         Ok(f)
+    }
+
+    /// Generate Service file
+    fn generate_service_file(
+        &self,
+        service_name: &str,
+        service: &Service,
+    ) -> Result<(), GenericErrors> {
+        let mut scope = Scope::new();
+        scope.import("reqwest", "*");
+
+        self.create_a_new_file(
+            format!("infrastructure/{}.rs", service_name),
+            scope.to_string().as_bytes(),
+        )?;
+
+        Ok(())
+    }
+
+    pub fn generate_services(&self) -> Result<(), GenericErrors> {
+        self.config
+            .services()
+            .iter()
+            .map(|(service_name, service)| self.generate_service_file(&service_name, service))
+            .collect::<Result<Vec<_>, _>>()
+            .map(|_| ())
     }
 
     /// Write to the main_file

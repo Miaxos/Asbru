@@ -89,6 +89,13 @@ pub fn generate_cargo_toml<P: AsRef<Path>>(path: P) -> () {
             "features": ["full"],
         }),
     );
+    dependencies.insert(
+        "reqwest".to_string(),
+        json!({
+            "version": "0.11.*",
+            "features": ["json"],
+        }),
+    );
 
     let cargo = Cargo {
         package,

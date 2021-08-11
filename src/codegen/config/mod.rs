@@ -10,6 +10,13 @@ pub struct TransportHTTP {
     method: String,
 }
 
+impl TransportHTTP {
+    /// Generate an API call with a transformation function to get data from an API.
+    fn generate_api_call(&self) -> Result<String, GenericErrors> {
+        todo!()
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug)]
 pub struct TransportGRPC {
     endpoint: String,

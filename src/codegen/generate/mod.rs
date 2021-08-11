@@ -64,6 +64,7 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P, config: P) -> Result<(), Gen
         .map(|x| x.generate())
         .collect::<Vec<_>>();
 
+    context.generate_services()?;
     let bl = context.main_file().generate();
     println!("{:?}", &bl);
 
