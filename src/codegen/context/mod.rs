@@ -1,3 +1,6 @@
+use std::borrow::BorrowMut;
+use std::cell::RefCell;
+use std::cell::RefMut;
 use std::fs;
 use std::io;
 use std::io::{Read, Write};
@@ -8,6 +11,9 @@ use async_graphql_parser::types::{
     DirectiveDefinition, InterfaceType, SchemaDefinition, ServiceDocument, TypeDefinition,
     TypeKind, TypeSystemDefinition,
 };
+use codegen::Scope;
+
+use super::render::cargo::MainFile;
 
 /// The context is like the Scope for the whole codegen, it's where we'll put every options for the
 /// Codegen and every derived settings too.
@@ -18,13 +24,18 @@ pub struct Context<'a> {
     directory: &'a Path,
     // config: &'a Config,
     schema: &'a ServiceDocument,
+    main_file: RefCell<MainFile>,
 }
 
 impl<'a> Context<'a> {
     pub fn new<P: AsRef<Path>>(directory: &'a P, schema: &'a ServiceDocument) -> Self {
+        let output = directory.as_ref();
+        let main_path = output.join(Path::new("src/main.rs"));
+
         Self {
-            directory: directory.as_ref(),
+            directory: output,
             schema,
+            main_file: RefCell::new(MainFile::new(&main_path)),
         }
     }
 
@@ -160,9 +171,15 @@ impl<'a> Context<'a> {
                     .open(&file_path)?;
 
                 path_file.write_all(format!("pub mod {};\n", mod_name).as_bytes())?;
+                println!("Processing {:?}", &file_path);
             }
         }
 
         Ok(f)
+    }
+
+    /// Write to the main_file
+    pub fn main_file(&self) -> RefMut<'_, MainFile> {
+        self.main_file.borrow_mut()
     }
 }

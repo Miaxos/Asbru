@@ -56,6 +56,11 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P) -> Result<(), GenericErrors>
         .map(|x| x.generate())
         .collect::<Vec<_>>();
 
+    context.main_file().main_function().line("blblbl");
+    context.main_file().main_function().line("blblbl2");
+    let bl = context.main_file().generate();
+    println!("{:?}", &bl);
+
     println!("|------------------------------|");
     println!("|           Result             |");
     println!("|------------------------------|");

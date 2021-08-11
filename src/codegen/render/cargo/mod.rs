@@ -4,6 +4,9 @@ use std::io::Write;
 use std::{collections::HashMap, path::Path};
 use toml;
 
+mod main;
+pub use main::MainFile;
+
 // TODO: Builder pattern for Cargo.
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -63,6 +66,8 @@ pub fn generate_cargo_toml<P: AsRef<Path>>(path: P) -> () {
 
     let encoded = toml::to_string(&cargo).unwrap();
 
+    let path = path.as_ref();
     let mut f = fs::File::create(&path).unwrap();
     f.write_all(encoded.as_bytes()).unwrap();
+    println!("Processing {:?}", &path);
 }

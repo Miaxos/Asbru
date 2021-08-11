@@ -4,32 +4,57 @@ use crate::codegen::generate::GenericErrors;
 
 pub trait ToRustType {
     /// Internal function, won't check the nullability of the type
-    fn type_name(&self) -> Result<String, GenericErrors>;
+    fn type_name(&self, remap_type: Option<&str>) -> Result<String, GenericErrors>;
     /// Transform a Type to a Rust type.
     /// TODO: Should add Scope to be able to dynamicly add scalars import when needed.
-    fn to_rust_type(&self) -> Result<String, GenericErrors>;
+    /// You can remap the last type to what you need if u want
+    fn to_rust_type(&self, remap_type: Option<&str>) -> Result<String, GenericErrors>;
+
+    /// If it's a native GQL type
+    fn is_native_gql_type(&self) -> Result<bool, GenericErrors>;
 }
 
 impl ToRustType for Type {
-    fn type_name(&self) -> Result<String, GenericErrors> {
+    fn type_name(&self, remap_type: Option<&str>) -> Result<String, GenericErrors> {
         let result = match &self.base {
-            BaseType::Named(name) => match name.as_str() {
-                "Bool" | "Boolean" => "bool",
-                "Int" => "i32",
-                "Float" => "f64",
-                "ID" => "ID",
-                _ => name.as_str(),
+            BaseType::Named(name) => {
+                if let Some(remap) = remap_type {
+                    remap.to_string()
+                } else {
+                    match name.as_str() {
+                        "Bool" | "Boolean" => "bool",
+                        "Int" => "i32",
+                        "Float" => "f64",
+                        "ID" => "ID",
+                        _ => name.as_str(),
+                    }
+                    .to_string()
+                }
             }
-            .to_string(),
-            BaseType::List(gql_type) => format!("Vec<{}>", gql_type.to_rust_type()?),
+            BaseType::List(gql_type) => format!("Vec<{}>", gql_type.to_rust_type(remap_type)?),
         };
         Ok(result)
     }
-    fn to_rust_type(&self) -> Result<String, GenericErrors> {
+
+    fn to_rust_type(&self, remap_type: Option<&str>) -> Result<String, GenericErrors> {
         if self.nullable {
-            Ok(format!("Option<{}>", self.type_name()?))
+            Ok(format!("Option<{}>", self.type_name(remap_type)?))
         } else {
-            Ok(self.type_name()?)
+            Ok(self.type_name(remap_type)?)
         }
+    }
+
+    fn is_native_gql_type(&self) -> Result<bool, GenericErrors> {
+        let result = match &self.base {
+            BaseType::Named(name) => match name.as_str() {
+                "Bool" | "Boolean" => true,
+                "Int" => true,
+                "Float" => true,
+                "ID" => true,
+                _ => false,
+            },
+            BaseType::List(gql_type) => gql_type.is_native_gql_type()?,
+        };
+        Ok(result)
     }
 }

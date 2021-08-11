@@ -51,8 +51,18 @@ impl<'a> ObjectWrapper<'a> {
             if len != 0 {
                 return None;
             }
+            let gql_type = &x.node.ty.node;
+            let gql_name = &x.node.name.node;
+
+            if gql_type.is_native_gql_type().unwrap() {
+                object_struct.field(gql_name, gql_type.to_rust_type(None).unwrap());
+            } else {
+                object_struct.field(
+                    &format!("{}_id", gql_name),
+                    gql_type.to_rust_type(Some("String")).unwrap(),
+                );
+            }
             // If it's another entity, we should have only their getting method.
-            object_struct.field(&x.node.name.node, &x.node.ty.node.to_rust_type().unwrap());
             Some((&x.node.name.node, &x.node.description))
         })
         .collect::<Vec<_>>();
@@ -102,7 +112,7 @@ impl<'a> ObjectWrapper<'a> {
                         .unwrap_or(""),
                 )
                 // Scalar type
-                .ret(format!("{}", &x.node.ty.node.to_rust_type().unwrap()))
+                .ret(format!("{}", &x.node.ty.node.to_rust_type(None).unwrap()))
                 .arg_ref_self()
                 .line("todo!()");
             // .field(&x.node.name.node, format!("{}", &x.node.ty.node.base));
@@ -143,7 +153,7 @@ impl<'a> Render for ObjectWrapper<'a> {
         // ?
         self.generate_domain_file()?;
         self.generate_application_file()?;
-        println!("{:?}", self.doc.name);
+        // println!("{:?}", self.doc.name);
 
         // Create files
         Err(GenericErrors::GenericGeneratorError)
