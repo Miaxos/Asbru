@@ -1,7 +1,9 @@
 use crate::codegen::render::graphql::scalars::ToRustType;
 use crate::codegen::{context::Context, generate::GenericErrors, render::render::Render};
-use async_graphql_parser::types::{Type, TypeDefinition, TypeKind};
+use async_graphql_parser::types::{InputValueDefinition, Type, TypeDefinition, TypeKind};
+use async_graphql_value::ConstValue;
 use codegen::{Function, Impl, Scope};
+use convert_case::{Case, Casing};
 
 const DENYLIST: [&str; 2] = ["Mutation", "Subscription"];
 
@@ -113,11 +115,11 @@ impl<'a> ObjectWrapper<'a> {
             // TODO Fields with args
             let len = x.node.arguments.len();
             if len != 0 {
-                process_fields_query(x, &mut scope, &mut impl_struct);
+                process_fields(x, &mut scope, &mut impl_struct);
                 return None;
             }
 
-            process_field_without_args(x, &mut scope, &mut impl_struct);
+            process_fields(x, &mut scope, &mut impl_struct);
             // .field(&x.node.name.node, format!("{}", &x.node.ty.node.base));
             Some((&x.node.name.node, &x.node.description))
         })
@@ -135,7 +137,7 @@ impl<'a> ObjectWrapper<'a> {
 }
 
 /// For fields without args, we can get the data from the Domain side.
-fn process_fields_query(
+fn process_fields(
     x: &async_graphql_parser::Positioned<async_graphql_parser::types::FieldDefinition>,
     scope: &mut Scope,
     impl_struct: &mut Impl,
@@ -147,17 +149,10 @@ fn process_fields_query(
     // function to the desired structure.
     // Call the desired service with the deserializable structure
     // Send the response
-    println!("{:?}", x);
-}
 
-/// For fields without args, we can get the data from the Domain side.
-fn process_field_without_args(
-    x: &async_graphql_parser::Positioned<async_graphql_parser::types::FieldDefinition>,
-    scope: &mut Scope,
-    impl_struct: &mut Impl,
-) {
     let type_object = &x.node.ty.node;
     let type_name = &x.node.name.node;
+
     if type_object.is_native_gql_type().unwrap() == false {
         scope.import(
             &format!(
@@ -168,7 +163,7 @@ fn process_field_without_args(
         );
     }
     let function = impl_struct
-        .new_fn(type_name)
+        .new_fn(&type_name.to_case(Case::Snake))
         .set_async(true)
         .doc(
             &x.node
@@ -180,16 +175,32 @@ fn process_field_without_args(
         // Scalar type
         .arg_ref_self();
 
-    add_field_definition_depending_on_type(scope, function, type_name, type_object);
+    // TODO: Should add description for inputs
+    for argument in x.node.arguments.iter() {
+        function.arg(
+            argument.node.name.node.as_str(),
+            &argument.node.ty.node.to_rust_type(None).unwrap(),
+        );
+    }
+
+    add_field_definition_depending_on_type(scope, function, type_name, type_object, x);
 }
 
 /// Depending on the type, we can create a function definition.
 fn add_field_definition_depending_on_type(
-    _scope: &mut Scope,
+    scope: &mut Scope,
     function: &mut Function,
     name: &str,
     gql_type: &Type,
+    x: &async_graphql_parser::Positioned<async_graphql_parser::types::FieldDefinition>,
 ) {
+    let directive = &x
+        .node
+        .directives
+        .iter()
+        .find(|x| x.node.name.node.as_str() == "serviceBackedQuery")
+        .map(|x| &x.node);
+
     match gql_type.is_native_gql_type().unwrap() {
         true => match &*gql_type.to_rust_type(None).unwrap() {
             "String" => function.line(format!("&self.{}", name)).ret("&String"),
@@ -200,10 +211,41 @@ fn add_field_definition_depending_on_type(
                 .line(format!("&self.{}", name))
                 .ret(format!("&{}", gql_type.to_rust_type(None).unwrap())),
         },
-        false => function.line(format!("todo!(\"WIP\")")).ret(format!(
-            "FieldResult<{}>",
-            gql_type.to_rust_type(None).unwrap()
-        )),
+        // Depending of the directives applied, should process the field/query according to it.
+        // If not a query, should dataload, if query, should have a serviceBackedQuery and use it
+        // to define the behaviour
+        false => match directive {
+            Some(directive) => {
+                let method_name = match &directive.get_argument("methodName").unwrap().node {
+                    ConstValue::String(value) => value,
+                    _ => unreachable!(),
+                };
+                let service = match &directive.get_argument("service").unwrap().node {
+                    ConstValue::String(value) => value,
+                    _ => unreachable!(),
+                };
+
+                scope.import(
+                    &format!("crate::infrastructure::{}", service),
+                    &format!("{}_{}_method", service, method_name.to_case(Case::Snake)),
+                );
+
+                function.line(
+                    r#"
+    todo!("Find how to write that shit")
+                "#,
+                );
+
+                function.ret(format!(
+                    "FieldResult<{}>",
+                    gql_type.to_rust_type(None).unwrap()
+                ))
+            }
+            None => function.line(format!("todo!(\"WIP\")")).ret(format!(
+                "FieldResult<{}>",
+                gql_type.to_rust_type(None).unwrap()
+            )),
+        },
     };
 }
 

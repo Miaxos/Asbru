@@ -98,7 +98,7 @@ The resolver for the query must be executed, it'll give us some Data, depending 
 
 ### Arguments
 
-- `service`: Describe the Service used to get these data. (How services are described in Asbru)
+- `service`: Describe the Service used to get these data.
 - `methodName`: Method name for the service, depending of the transport method, it can have multiple meanings (RPC for GRPC, REST endpoint for REST API)
 - `cacheMethod`: Describe the behavior of sub-resolvers: 
 

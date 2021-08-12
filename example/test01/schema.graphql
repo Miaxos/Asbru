@@ -12,10 +12,12 @@ schema {
 }
 
 type Query {
-  "userById"
-  userById(id: ID!): Me! @serviceBackedQuery(
-    service: "users",
-    methodName: "getUserRandom"
+  # "userById"
+  # userById(id: ID!): Me!,
+  petById(id: ID!): Pet!
+  @serviceBackedQuery(
+    service: "pets",
+    methodName: "petGetById"
   ),
   "me: Single-line comment"
   me: Me!
@@ -30,6 +32,13 @@ type Mutation {
 
 type Subscription {
   badge: Int!
+}
+
+type Pet {
+  id: ID!
+  name: String!
+  status: String
+  photosUrls: [String]
 }
 
 type CreateFriendMutationPayload {
@@ -65,10 +74,10 @@ type Me implements User {
   email: String
   age: Int
   active: Bool
-  friends(first: Int): FriendConnection!
+  # friends(first: Int): FriendConnection!
   notifications: [Notification]
   web: String
-  search(text: String!): [SearchResult]
+  # search(text: String!): [SearchResult]
 }
 
 type Notification {
