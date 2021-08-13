@@ -60,6 +60,8 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: publish
+        # The ew version fucked up the publish with the Cargo.lock, I'll look into it later... 0:-)
+        args: --allow-dirty
 
     - name: Update deployment status
       uses: actions/github-script@v3
