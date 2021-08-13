@@ -38,7 +38,8 @@ impl MethodHTTP {
     pub fn generate_method(&self, scope: &mut Scope, endpoint: &str, function_name: &str) -> () {
         let mut function = Function::new(&function_name.to_case(Case::Snake));
         let body_args_struct_name = format!("{}BodyArgs", function_name.to_case(Case::Pascal));
-        let query_args_struct_name = format!("{}RouteArgs", function_name.to_case(Case::Pascal));
+        let query_args_struct_name = format!("{}QueryArgs", function_name.to_case(Case::Pascal));
+        let route_args_struct_name = format!("{}RouteArgs", function_name.to_case(Case::Pascal));
 
         scope.import("serde", "Serialize");
         scope.import("serde", "Deserialize");
@@ -48,7 +49,14 @@ impl MethodHTTP {
             .vis("pub")
             .derive("Serialize")
             .derive("Deserialize");
-        let mut route_args_struct = Struct::new(&query_args_struct_name);
+
+        let mut query_args_struct = Struct::new(&query_args_struct_name);
+        query_args_struct
+            .vis("pub")
+            .derive("Serialize")
+            .derive("Deserialize");
+
+        let mut route_args_struct = Struct::new(&route_args_struct_name);
         route_args_struct
             .vis("pub")
             .derive("Serialize")
@@ -63,20 +71,29 @@ impl MethodHTTP {
                 .collect::<Vec<()>>();
         }
 
-        let _ = RE_ARGS
+        let format_url = RE_ARGS
             .captures_iter(&self.route)
             .map(|x| {
                 route_args_struct.field(
                     &format!("pub {}", x[1].to_string().to_case(Case::Snake)),
                     "String",
                 );
+                format!(
+                    ", {key} = route.{key}",
+                    key = x[1].to_string().to_case(Case::Snake)
+                )
             })
-            .collect::<Vec<()>>();
+            .collect::<Vec<String>>()
+            .join("");
 
         let final_endpoint = format!("{}{}", endpoint, self.route);
 
         let client_method_codegen_line = match self.http_method {
-            HTTPMethod::GET => format!(".get(\"{url}\")", url = final_endpoint),
+            HTTPMethod::GET => format!(
+                ".get(format!(\"{url}\"{format}))",
+                url = final_endpoint,
+                format = format_url
+            ),
             HTTPMethod::POST => format!(".post(\"{url}\")", url = final_endpoint),
             _ => unreachable!(),
         };
@@ -100,6 +117,7 @@ impl MethodHTTP {
             .arg("client", "&Client")
             .arg("body", &body_args_struct_name)
             .arg("query", &query_args_struct_name)
+            .arg("route", &route_args_struct_name)
             .ret("anyhow::Result<T>")
             .line(format!(
                 r#"
@@ -151,6 +169,7 @@ impl MethodHTTP {
         scope
             .push_struct(body_args_struct)
             .push_struct(route_args_struct)
+            .push_struct(query_args_struct)
             .push_fn(function);
     }
 
@@ -185,8 +204,11 @@ pub enum HTTPMethod {
 #[derive(Deserialize, Serialize, Debug)]
 pub struct MethodHTTP {
     route: String,
+    /// Args that should go from the GQL query (or mapped over) to the body params.
     http_method: HTTPMethod,
     body_args: Option<Vec<String>>,
+    /// Args that should go from the GQL query (or mapped over) to the query params.
+    query_args: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]

@@ -28,11 +28,13 @@ impl<'a> ObjectWrapper<'a> {
     pub fn generate_domain_file(&self) -> Result<(), GenericErrors> {
         let mut scope = Scope::new();
         scope.import("serde", "Serialize");
+        scope.import("serde", "Deserialize");
 
         let object_struct = scope
             .new_struct(self.object_name())
             .vis("pub")
             .derive("Serialize")
+            .derive("Deserialize")
             .derive("Debug")
             .derive("Default")
             .derive("Clone");
@@ -229,6 +231,18 @@ fn add_field_definition_depending_on_type(
                     &format!("crate::infrastructure::{}", service),
                     &format!("{}_{}_method", service, method_name.to_case(Case::Snake)),
                 );
+
+                /*
+                         *
+                let client = reqwest::Client::new();
+                pets_pet_get_by_id_method::<Pet>(
+                    &client,
+                    PetsPetGetByIdMethodBodyArgs {},
+                    PetsPetGetByIdMethodRouteArgs { id: id.into() },
+                )
+                .await
+                .map_err(|_| "An error happened".into())
+                         */
 
                 function.line(
                     r#"
