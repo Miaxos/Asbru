@@ -147,17 +147,18 @@ jobs:
     runs-on: ubuntu-latest
     name: Build Docker Image for Schema
     steps:
-    - name: Build Docker image
-      run: docker build -t registry.heroku.com/${{ secrets.HEROKU_APP }}/web:latest .
-    - name: Login to container registry
-      env:
-        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      run: heroku container:login
-    - name: Push Docker image
-      run: docker push registry.heroku.com/${{ secrets.HEROKU_APP }}/web
+      # Check-out your repository.
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Release
-      env:
-        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      run: heroku container:release -a ${{ secrets.HEROKU_APP }} web
+      - name: Build, Push and Release a Docker container to Heroku. 
+        uses: gonuit/heroku-docker-deploy@v1.3.3 
+        with:
+          email: ${{ secrets.HEROKU_EMAIL }}
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_APP }}
+          dockerfile_directory: ./
+          dockerfile_name: Dockerfile
+          docker_options: "--no-cache"
+          process_type: web
 
