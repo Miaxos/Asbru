@@ -1,3 +1,4 @@
+use crate::codegen::config::Config;
 use crate::codegen::context::Context;
 use crate::codegen::render::cargo::generate_cargo_toml;
 use crate::codegen::render::render::Render;
@@ -19,6 +20,10 @@ pub enum GenericErrors {
     GenericGeneratorError,
     #[error("Generic IO issue")]
     GenericIOError(#[from] io::Error),
+    #[error("Config file invalid")]
+    InvalidConfigError,
+    #[error("Service {0} not found")]
+    ServiceNotFoundError(String),
 }
 
 /// Open a file
@@ -31,9 +36,12 @@ fn parse<S: AsRef<str>>(schema: S) -> Result<ServiceDocument, GenericErrors> {
     parse_schema(&schema).map_err(GenericErrors::ParserError)
 }
 
-pub fn generate<P: AsRef<Path>>(path: P, output: P) -> Result<(), GenericErrors> {
+pub fn generate<P: AsRef<Path>>(path: P, output: P, config: P) -> Result<(), GenericErrors> {
     let schema = open(&path).and_then(parse)?;
-    let context = Context::new(&output, &schema);
+    let config = open(&config).and_then(|config_str| {
+        toml::from_str::<Config>(&config_str).map_err(|_| GenericErrors::InvalidConfigError)
+    })?;
+    let context = Context::new(&output, &schema, &config);
 
     // Create a directory with src folder
     let src = output.as_ref().join(Path::new("src/"));
@@ -55,6 +63,10 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P) -> Result<(), GenericErrors>
         .iter()
         .map(|x| x.generate())
         .collect::<Vec<_>>();
+
+    context.generate_services()?;
+    let bl = context.main_file().generate();
+    println!("{:?}", &bl);
 
     println!("|------------------------------|");
     println!("|           Result             |");

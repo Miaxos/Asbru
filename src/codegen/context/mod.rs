@@ -1,30 +1,49 @@
+use convert_case::{Case, Casing};
+use std::borrow::BorrowMut;
+use std::cell::RefCell;
+use std::cell::RefMut;
 use std::fs;
 use std::io;
 use std::io::{Read, Write};
 use std::{fs::File, path::Path};
 
-use crate::codegen::{config::Config, render::graphql::object::ObjectWrapper};
+use crate::codegen::generate::GenericErrors;
+use crate::codegen::{config::Config, config::Service, render::graphql::object::ObjectWrapper};
 use async_graphql_parser::types::{
     DirectiveDefinition, InterfaceType, SchemaDefinition, ServiceDocument, TypeDefinition,
     TypeKind, TypeSystemDefinition,
 };
+use codegen::Scope;
+
+use super::render::cargo::MainFile;
 
 /// The context is like the Scope for the whole codegen, it's where we'll put every options for the
 /// Codegen and every derived settings too.
 /// Generators will be able to read & write inside that context to codegen their files.
 /// You can view this struct as the Global Environment for Asbru
 pub struct Context<'a> {
+    config: &'a Config,
     /// Source directory for codegen
     directory: &'a Path,
     // config: &'a Config,
     schema: &'a ServiceDocument,
+    main_file: RefCell<MainFile>,
 }
 
 impl<'a> Context<'a> {
-    pub fn new<P: AsRef<Path>>(directory: &'a P, schema: &'a ServiceDocument) -> Self {
+    pub fn new<P: AsRef<Path>>(
+        directory: &'a P,
+        schema: &'a ServiceDocument,
+        config: &'a Config,
+    ) -> Self {
+        let output = directory.as_ref();
+        let main_path = output.join(Path::new("src/main.rs"));
+
         Self {
-            directory: directory.as_ref(),
+            config,
+            directory: output,
             schema,
+            main_file: RefCell::new(MainFile::new(&main_path)),
         }
     }
 
@@ -147,6 +166,18 @@ impl<'a> Context<'a> {
 
             let mod_name = paths[i + 1].trim_end_matches(".rs");
 
+            if i == 0 {
+                let already = self.main_file().main_scope().to_string();
+                let pattern_to_write = format!("mod {};", &mod_name);
+
+                if already.find(&pattern_to_write).is_none() {
+                    self.main_file()
+                        .main_scope()
+                        .raw(&format!("mod {};", mod_name));
+                }
+                continue;
+            }
+
             let file_path = src.clone().join("mod.rs");
             let should_write = match fs::read_to_string(&file_path) {
                 Ok(content) => content.find(&format!("pub mod {};\n", mod_name)).is_none(),
@@ -160,9 +191,62 @@ impl<'a> Context<'a> {
                     .open(&file_path)?;
 
                 path_file.write_all(format!("pub mod {};\n", mod_name).as_bytes())?;
+                println!("Processing {:?}", &file_path);
             }
         }
 
         Ok(f)
+    }
+
+    /// Generate Service file
+    /// TODO Generate the service based on the transport definition
+    fn generate_service_file(
+        &self,
+        service_name: &str,
+        service: &Service,
+    ) -> Result<(), GenericErrors> {
+        let mut scope = Scope::new();
+        scope.import("reqwest", "Client");
+        scope.import("serde::de", "DeserializeOwned");
+
+        for (method_name, method) in service.methods().iter() {
+            method.generate_method(
+                &mut scope,
+                service.endpoint(),
+                &format!("{}_{}_method", service_name, method_name),
+            )
+        }
+
+        self.create_a_new_file(
+            format!("infrastructure/{}.rs", service_name),
+            scope.to_string().as_bytes(),
+        )?;
+
+        Ok(())
+    }
+
+    pub fn get_service_by_name<S: AsRef<str>>(&self, name: S) -> Result<&Service, GenericErrors> {
+        self.config
+            .services()
+            .iter()
+            .find(|(service_name, _)| *service_name == name.as_ref())
+            .map(|(_, service)| service)
+            .ok_or(GenericErrors::ServiceNotFoundError(
+                name.as_ref().to_string(),
+            ))
+    }
+
+    pub fn generate_services(&self) -> Result<(), GenericErrors> {
+        self.config
+            .services()
+            .iter()
+            .map(|(service_name, service)| self.generate_service_file(&service_name, service))
+            .collect::<Result<Vec<_>, _>>()
+            .map(|_| ())
+    }
+
+    /// Write to the main_file
+    pub fn main_file(&self) -> RefMut<'_, MainFile> {
+        self.main_file.borrow_mut()
     }
 }

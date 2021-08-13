@@ -1,9 +1,9 @@
-use crate::codegen::render::graphql::scalars::ToRustType;
+use crate::codegen::render::graphql::field::FieldDefinitionExt;
 use crate::codegen::{context::Context, generate::GenericErrors, render::render::Render};
 use async_graphql_parser::types::{TypeDefinition, TypeKind};
-use codegen::Scope;
+use codegen::{Impl, Scope};
 
-const DENYLIST: [&str; 3] = ["Query", "Mutation", "Subscription"];
+const DENYLIST: [&str; 2] = ["Mutation", "Subscription"];
 
 pub struct ObjectWrapper<'a> {
     // We store the whole type definition because we might need directives but it's an object, we
@@ -26,11 +26,15 @@ impl<'a> ObjectWrapper<'a> {
     pub fn generate_domain_file(&self) -> Result<(), GenericErrors> {
         let mut scope = Scope::new();
         scope.import("serde", "Serialize");
+        scope.import("serde", "Deserialize");
 
         let object_struct = scope
             .new_struct(self.object_name())
+            .vis("pub")
             .derive("Serialize")
+            .derive("Deserialize")
             .derive("Debug")
+            .derive("Default")
             .derive("Clone");
 
         // Add field for it.
@@ -51,8 +55,8 @@ impl<'a> ObjectWrapper<'a> {
             if len != 0 {
                 return None;
             }
+            x.node.generate_domain_struct(object_struct);
             // If it's another entity, we should have only their getting method.
-            object_struct.field(&x.node.name.node, &x.node.ty.node.to_rust_type().unwrap());
             Some((&x.node.name.node, &x.node.description))
         })
         .collect::<Vec<_>>();
@@ -69,13 +73,13 @@ impl<'a> ObjectWrapper<'a> {
     pub fn generate_application_file(&self) -> Result<(), GenericErrors> {
         let mut scope = Scope::new();
         scope.import("async_graphql", "*");
-        scope.import("serde", "Serialize");
         scope.import(
             &format!("crate::domain::{}", self.object_name().to_lowercase()),
             self.object_name(),
         );
 
-        let impl_struct = scope.new_impl(self.object_name()).r#macro("#[Object]");
+        let mut impl_struct = Impl::new(self.object_name());
+        impl_struct.r#macro("#[Object]");
 
         // Add field for it.
         let _fields = match &self.doc.kind {
@@ -89,26 +93,19 @@ impl<'a> ObjectWrapper<'a> {
             // TODO Fields with args
             let len = x.node.arguments.len();
             if len != 0 {
+                x.node
+                    .generate_method(&self.context, &mut scope, &mut impl_struct);
                 return None;
             }
-            let _function = impl_struct
-                .new_fn(&x.node.name.node)
-                .set_async(true)
-                .doc(
-                    &x.node
-                        .description
-                        .as_ref()
-                        .map(|x| x.node.as_ref())
-                        .unwrap_or(""),
-                )
-                // Scalar type
-                .ret(format!("{}", &x.node.ty.node.to_rust_type().unwrap()))
-                .arg_ref_self()
-                .line("todo!()");
+
+            x.node
+                .generate_method(&self.context, &mut scope, &mut impl_struct);
             // .field(&x.node.name.node, format!("{}", &x.node.ty.node.base));
             Some((&x.node.name.node, &x.node.description))
         })
         .collect::<Vec<_>>();
+
+        scope.push_impl(impl_struct);
 
         self.context.create_a_new_file(
             format!("application/{}", &self.domain_name()),
@@ -143,7 +140,6 @@ impl<'a> Render for ObjectWrapper<'a> {
         // ?
         self.generate_domain_file()?;
         self.generate_application_file()?;
-        println!("{:?}", self.doc.name);
 
         // Create files
         Err(GenericErrors::GenericGeneratorError)

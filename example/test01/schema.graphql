@@ -1,15 +1,30 @@
+directive @serviceBackedQuery(
+  service: String!,
+  "Method used to connect to the service"
+  methodName: String!,
+) on QUERY
+
+directive @remote on OBJECT | INTERFACE | QUERY
+directive @fromNumber on OBJECT
+directive @key(key: String!) on FIELD 
+
 schema {
   query: Query
   mutation: Mutation
 }
 
 type Query {
+  # "userById"
+  # userById(id: ID!): Me!,
+  petById(id: ID!): Pet
+  @serviceBackedQuery(
+    service: "pets",
+    methodName: "petGetById"
+  ),
   "me: Single-line comment"
   me: Me!
   active: Bool!
 }
-
-directive @remote on OBJECT | INTERFACE
 
 type Mutation {
   createFriendMutation(
@@ -19,6 +34,13 @@ type Mutation {
 
 type Subscription {
   badge: Int!
+}
+
+type Pet {
+  id: ID! @fromNumber
+  name: String!
+  status: String
+  photosUrls: [String] @key(key: "photoUrls")
 }
 
 type CreateFriendMutationPayload {
@@ -54,10 +76,10 @@ type Me implements User {
   email: String
   age: Int
   active: Bool
-  friends(first: Int): FriendConnection!
+  # friends(first: Int): FriendConnection!
   notifications: [Notification]
-  web: Url
-  search(text: String!): [SearchResult]
+  web: String
+  # search(text: String!): [SearchResult]
 }
 
 type Notification {
