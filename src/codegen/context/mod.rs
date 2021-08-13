@@ -225,6 +225,17 @@ impl<'a> Context<'a> {
         Ok(())
     }
 
+    pub fn get_service_by_name<S: AsRef<str>>(&self, name: S) -> Result<&Service, GenericErrors> {
+        self.config
+            .services()
+            .iter()
+            .find(|(service_name, _)| *service_name == name.as_ref())
+            .map(|(_, service)| service)
+            .ok_or(GenericErrors::ServiceNotFoundError(
+                name.as_ref().to_string(),
+            ))
+    }
+
     pub fn generate_services(&self) -> Result<(), GenericErrors> {
         self.config
             .services()

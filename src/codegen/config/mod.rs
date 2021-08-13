@@ -31,6 +31,53 @@ impl TransportHTTP {
 }
 
 impl MethodHTTP {
+    pub fn query_method_construct(&self, function_name: &str) -> String {
+        let mut args = "".to_string();
+
+        format!(
+            "{}MethodQueryArgs {{ {} }}",
+            function_name.to_case(Case::Pascal),
+            args
+        )
+    }
+
+    pub fn body_method_construct(&self, function_name: &str) -> String {
+        let mut args = "".to_string();
+
+        if let Some(body_args) = &self.body_args {
+            args = body_args
+                .iter()
+                .map(|x| format!("{key}: {key}.into()", key = x.to_case(Case::Snake)))
+                .collect::<Vec<String>>()
+                .join(", ");
+        }
+
+        format!(
+            "{}MethodBodyArgs {{ {} }}",
+            function_name.to_case(Case::Pascal),
+            args
+        )
+    }
+
+    pub fn route_method_construct(&self, function_name: &str) -> String {
+        let args = RE_ARGS
+            .captures_iter(&self.route)
+            .map(|x| {
+                format!(
+                    "{key}: {key}.into()",
+                    key = x[1].to_string().to_case(Case::Snake)
+                )
+            })
+            .collect::<Vec<String>>()
+            .join(", ");
+
+        format!(
+            "{}MethodRouteArgs {{ {} }}",
+            function_name.to_case(Case::Pascal),
+            args
+        )
+    }
+
     /// Generate method service code function
     /// We compute the necessary arguments while creating the Function code, then we create a
     /// public struct which will describe the request Arguments and which will be used inside the
