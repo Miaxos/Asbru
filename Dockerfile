@@ -2,7 +2,7 @@
 # Cargo Build Stage
 # -----------------
 
-FROM rg.fr-par.scw.cloud/brevz/rust-builder:1.51.0 as cargo-build
+FROM rust:1.54 as cargo-build
 
 WORKDIR /usr/src/app
 
