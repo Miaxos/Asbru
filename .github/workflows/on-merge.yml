@@ -88,7 +88,7 @@ jobs:
       env:
         REF: ${{ steps.push.outputs.ref }}
         VERSION: ${{ steps.push.outputs.VERSION }}
-        NAME: "async-graphql-extension-apollo-tracing"
+        NAME: "asbru"
         VERSION_BUMP: ${{ steps.extract-version-labels.outputs.versionBump }}
       with:
         github-token: ${{ secrets.DEPLOY_TOKEN }}
