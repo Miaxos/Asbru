@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.7]
+
 ### Misc
 
-- Publish dirty :-)
+-   Publish dirty :-)
 
 ## [0.0.6]
 
@@ -57,7 +59,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Boot repo
 
-[Unreleased]: https://github.com/Miaxos/asbru/compare/v0.0.6...HEAD
+[Unreleased]: https://github.com/Miaxos/asbru/compare/v0.0.7...HEAD
+
+[0.0.7]: https://github.com/Miaxos/asbru/compare/v0.0.6...v0.0.7
 
 [0.0.6]: https://github.com/Miaxos/asbru/compare/v0.0.5...v0.0.6
 
