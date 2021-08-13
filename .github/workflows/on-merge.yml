@@ -143,3 +143,21 @@ jobs:
             draft: false,
             prerelease: false,
           })
+  build_docker:
+    runs-on: ubuntu-latest
+    name: Build Docker Image for Schema
+    steps:
+    - name: Build Docker image
+      run: docker build -t registry.heroku.com/${{ secrets.HEROKU_APP }}/web:latest .
+    - name: Login to container registry
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: heroku container:login
+    - name: Push Docker image
+      run: docker push registry.heroku.com/${{ secrets.HEROKU_APP }}/web
+
+    - name: Release
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: heroku container:release -a ${{ secrets.HEROKU_APP }} web
+

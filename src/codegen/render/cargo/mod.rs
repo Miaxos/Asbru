@@ -41,7 +41,7 @@ struct Cargo {
 /// @test-only, should create a builder pattern for a Cargo struct and a save
 pub fn generate_cargo_toml<P: AsRef<Path>>(path: P) -> () {
     let package = PackageConfig {
-        name: "test".to_string(),
+        name: "asbru-test".to_string(),
         version: "0.1.0".to_string(),
         authors: vec!["Anthony Griffon <anthony@griffon.one>".to_string()],
         description: Some("A little description".to_string()),
@@ -53,7 +53,7 @@ pub fn generate_cargo_toml<P: AsRef<Path>>(path: P) -> () {
     };
 
     let bin = BinConfig {
-        name: "test".to_string(),
+        name: "asbru-test".to_string(),
         path: "src/main.rs".to_string(),
     };
 
