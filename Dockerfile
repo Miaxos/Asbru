@@ -29,6 +29,8 @@ RUN cargo install --path . --verbose
 # Copy the binary into a new container for a smaller docker image
 FROM debian:10-slim
 
+EXPOSE 8080
+
 RUN apt-get update
 RUN apt-get install -y openssl ca-certificates
 
