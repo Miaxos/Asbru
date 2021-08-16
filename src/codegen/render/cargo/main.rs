@@ -63,6 +63,7 @@ impl Render for MainFile {
         self.main_scope()
             .import("async_graphql", "EmptySubscription");
         self.main_scope().import("warp", "Filter");
+        self.main_scope().import("std", "env");
         self.main_scope().import("tower::make", "Shared");
         self.main_scope().import("tower", "ServiceBuilder");
 
@@ -71,6 +72,11 @@ impl Render for MainFile {
             r#"
     let schema = Schema::build(Query::default(), EmptyMutation, EmptySubscription)
         .finish();
+
+    let env_port = env::var("PORT")
+        .expect("No PORT provided in env variables.");
+    let env_port: u16 = env::var("PORT")
+        .expect("No PORT provided in env variables.").parse::<u16>().expect("No valid PORT provided.");
 
     let cors = warp::cors()
         .allow_methods(vec!["POST"])
@@ -102,7 +108,7 @@ impl Render for MainFile {
 
     let service = Shared::new(service);
 
-    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], 8080));
+    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], env_port));
     let listener = std::net::TcpListener::bind(addr).unwrap();
 
     warp::hyper::Server::from_tcp(listener).unwrap().serve(service).await?;

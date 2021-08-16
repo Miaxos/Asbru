@@ -62,6 +62,14 @@ For instance, instead of using directly `reqwest` to do http call, we create a h
 
 `application` will describe entity with a GraphQL implementation to describe query, mutations, subscriptions.
 
+## Example
+
+An interactive example is available with this [configuration](https://github.com/Miaxos/Asbru/tree/main/example/test01).
+
+Available schema here:
+
+- [https://asbru-schema-01.herokuapp.com/graphql](https://asbru-schema-01.herokuapp.com/)
+
 ## TODO
 
 * ❌ Manage a configuration files.
