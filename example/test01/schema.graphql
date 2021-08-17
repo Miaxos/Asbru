@@ -1,3 +1,7 @@
+# Everything here should not be inside the schema from the userById
+# but dynamically added when generating code.
+#
+
 directive @serviceBackedQuery(
   service: String!,
   "Method used to connect to the service"
@@ -7,6 +11,10 @@ directive @serviceBackedQuery(
 directive @fromNumber on OBJECT
 directive @key(key: String!) on FIELD 
 directive @rename(name: String!) on ENUM_VALUE
+
+#
+# User Schema
+#
 
 schema {
   query: Query
