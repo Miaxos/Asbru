@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.12]
+
 ### Feat
 
-- Enum generation
+-   Enum generation
 
 ## [0.0.11]
 
@@ -87,7 +89,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Boot repo
 
-[Unreleased]: https://github.com/Miaxos/asbru/compare/v0.0.11...HEAD
+[Unreleased]: https://github.com/Miaxos/asbru/compare/v0.0.12...HEAD
+
+[0.0.12]: https://github.com/Miaxos/asbru/compare/v0.0.11...v0.0.12
 
 [0.0.11]: https://github.com/Miaxos/asbru/compare/v0.0.10...v0.0.11
 
