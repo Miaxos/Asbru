@@ -6,6 +6,7 @@ use convert_case::{Case, Casing};
 
 use super::{
     directive::{KeyDirective, ServiceBackedQueryDirective},
+    gql_types::GraphQLType,
     scalars::ToRustType,
 };
 
@@ -13,10 +14,15 @@ pub trait FieldDefinitionExt {
     fn service_backed_query(&self) -> Option<ServiceBackedQueryDirective>;
     fn from_number(&self) -> bool;
     fn key_directive(&self) -> Option<KeyDirective>;
-    fn is_native_gql_type(&self) -> Result<bool, GenericErrors>;
+    fn is_native_gql_type<'a>(&self, context: &'a Context) -> Result<GraphQLType, GenericErrors>;
 
     /// Add a field to a structure
-    fn generate_domain_struct(&self, domain_struct: &mut Struct) -> ();
+    fn generate_domain_struct<'a>(
+        &self,
+        context: &'a Context,
+        scope: &mut Scope,
+        domain_struct: &mut Struct,
+    ) -> ();
 
     /// From a field, generate the associated method
     fn generate_method<'a>(
@@ -76,11 +82,16 @@ impl FieldDefinitionExt for FieldDefinition {
         *from_number
     }
 
-    fn is_native_gql_type(&self) -> Result<bool, GenericErrors> {
-        self.ty.node.is_native_gql_type()
+    fn is_native_gql_type<'a>(&self, context: &'a Context) -> Result<GraphQLType, GenericErrors> {
+        self.ty.node.is_native_gql_type(context)
     }
 
-    fn generate_domain_struct(&self, domain_struct: &mut Struct) -> () {
+    fn generate_domain_struct<'a>(
+        &self,
+        context: &'a Context,
+        scope: &mut Scope,
+        domain_struct: &mut Struct,
+    ) -> () {
         let gql_type = &self.ty.node;
         let gql_name = &self.name.node;
 
@@ -89,29 +100,56 @@ impl FieldDefinitionExt for FieldDefinition {
             return;
         };
 
-        if gql_type.is_native_gql_type().unwrap() {
-            let opt_alias = self
-                .key_directive()
-                .map(|x| format!("#[serde(alias = \"{}\")]\n", x.key))
-                .unwrap_or("".to_string());
-            let type_name = &*gql_type.to_rust_type(None).unwrap();
-            domain_struct.field(
-                &format!("{}pub {}", &opt_alias, gql_name.to_case(Case::Snake)),
-                match type_name {
-                    "ID" => "String",
-                    _ => type_name,
-                },
-            );
-        } else {
-            let type_name = &*gql_type.to_rust_type(Some("String")).unwrap();
+        // We should check if the type is either:
+        // - Native
+        // - Non-Native:
+        //  - Enum
+        //  - Interface? (WIP)
+        match gql_type.is_native_gql_type(context).unwrap() {
+            GraphQLType::NativeType => {
+                let opt_alias = self
+                    .key_directive()
+                    .map(|x| format!("#[serde(alias = \"{}\")]\n", x.key))
+                    .unwrap_or("".to_string());
+                let type_name = &*gql_type.to_rust_type(None).unwrap();
+                domain_struct.field(
+                    &format!("{}pub {}", &opt_alias, gql_name.to_case(Case::Snake)),
+                    match type_name {
+                        "ID" => "String",
+                        _ => type_name,
+                    },
+                );
+            }
+            GraphQLType::EnumType => {
+                scope.import(
+                    &format!(
+                        "crate::domain::{}",
+                        &gql_type.entity_type().unwrap().to_lowercase()
+                    ),
+                    &gql_type.entity_type().unwrap(),
+                );
 
-            domain_struct.field(
-                &format!("pub {}_id", gql_name),
-                match type_name {
-                    "ID" => "String",
-                    _ => type_name,
-                },
-            );
+                let opt_alias = self
+                    .key_directive()
+                    .map(|x| format!("#[serde(alias = \"{}\")]\n", x.key))
+                    .unwrap_or("".to_string());
+                let type_name = &*gql_type.to_rust_type(None).unwrap();
+                domain_struct.field(
+                    &format!("{}pub {}", &opt_alias, gql_name.to_case(Case::Snake)),
+                    type_name,
+                );
+            }
+            _ => {
+                let type_name = &*gql_type.to_rust_type(Some("String")).unwrap();
+
+                domain_struct.field(
+                    &format!("pub {}_id", gql_name),
+                    match type_name {
+                        "ID" => "String",
+                        _ => type_name,
+                    },
+                );
+            }
         }
     }
 
@@ -124,14 +162,17 @@ impl FieldDefinitionExt for FieldDefinition {
         let type_object = &self.ty.node;
         let type_name = &self.name.node;
 
-        if type_object.is_native_gql_type().unwrap() == false {
-            scope.import(
-                &format!(
-                    "crate::domain::{}",
-                    &type_object.entity_type().unwrap().to_lowercase()
-                ),
-                &type_object.entity_type().unwrap(),
-            );
+        match type_object.is_native_gql_type(context).unwrap() {
+            GraphQLType::EnumType | GraphQLType::UnknownType => {
+                scope.import(
+                    &format!(
+                        "crate::domain::{}",
+                        &type_object.entity_type().unwrap().to_lowercase()
+                    ),
+                    &type_object.entity_type().unwrap(),
+                );
+            }
+            _ => {}
         }
 
         let function = impl_struct
@@ -155,8 +196,14 @@ impl FieldDefinitionExt for FieldDefinition {
             );
         }
 
-        match type_object.is_native_gql_type().unwrap() {
-            true => match &*type_object.to_rust_type(None).unwrap() {
+        println!(
+            "{} is {:?}",
+            type_name,
+            type_object.is_native_gql_type(context).unwrap()
+        );
+
+        match type_object.is_native_gql_type(context).unwrap() {
+            GraphQLType::NativeType => match &*type_object.to_rust_type(None).unwrap() {
                 "String" => function
                     .line(format!("&self.{}", type_name.to_case(Case::Snake)))
                     .ret("&String"),
@@ -170,14 +217,19 @@ impl FieldDefinitionExt for FieldDefinition {
                     .line(format!("&self.{}", type_name.to_case(Case::Snake)))
                     .ret(format!("&{}", type_object.to_rust_type(None).unwrap())),
             },
+            GraphQLType::EnumType => function
+                .line(format!("self.{}", type_name.to_case(Case::Snake)))
+                .ret(format!("{}", type_object.to_rust_type(None).unwrap())),
             // Depending of the directives applied, should process the field/query according to it.
             // If not a query, should dataload, if query, should have a serviceBackedQuery and use it
             // to define the behaviour
-            false => match self.service_backed_query() {
+            _ => match self.service_backed_query() {
                 Some(directive) => {
                     directive.generate_method_definition(context, &self, scope, function);
                     function
                 }
+                // We should check if it's an enum for instance, because if it's an enum, we should
+                // try to match the actual
                 None => function.line(format!("todo!(\"WIP\")")).ret(format!(
                     "FieldResult<{}>",
                     type_object.to_rust_type(None).unwrap()

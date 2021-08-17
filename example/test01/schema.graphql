@@ -4,9 +4,9 @@ directive @serviceBackedQuery(
   methodName: String!,
 ) on QUERY
 
-directive @remote on OBJECT | INTERFACE | QUERY
 directive @fromNumber on OBJECT
 directive @key(key: String!) on FIELD 
+directive @rename(name: String!) on ENUM_VALUE
 
 schema {
   query: Query
@@ -39,9 +39,17 @@ type Subscription {
 type Pet {
   id: ID! @fromNumber
   name: String!
-  status: String
+  status: PetStatus
   photosUrls: [String] @key(key: "photoUrls")
 }
+
+enum PetStatus {
+  AVAILABLE @rename(name: "available")
+  STATUS @rename(name: "status")
+  PENDING @rename(name: "pending")
+  UNKNOWN @rename(name: "")
+}
+
 
 type CreateFriendMutationPayload {
   friend: Friend!

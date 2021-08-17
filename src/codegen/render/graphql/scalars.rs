@@ -1,6 +1,7 @@
+use super::gql_types::GraphQLType;
 use async_graphql_parser::types::{BaseType, Type};
 
-use crate::codegen::generate::GenericErrors;
+use crate::codegen::{context::Context, generate::GenericErrors};
 
 pub trait ToRustType {
     /// Internal function, won't check the nullability of the type
@@ -11,7 +12,7 @@ pub trait ToRustType {
     fn to_rust_type(&self, remap_type: Option<&str>) -> Result<String, GenericErrors>;
 
     /// If it's a native GQL type
-    fn is_native_gql_type(&self) -> Result<bool, GenericErrors>;
+    fn is_native_gql_type<'a>(&self, context: &'a Context) -> Result<GraphQLType, GenericErrors>;
 
     /// Get the Entity type without any wrapper.
     /// If you have Option<String> it'll give you String
@@ -64,17 +65,23 @@ impl ToRustType for Type {
         }
     }
 
-    fn is_native_gql_type(&self) -> Result<bool, GenericErrors> {
+    fn is_native_gql_type<'a>(&self, context: &'a Context) -> Result<GraphQLType, GenericErrors> {
         let result = match &self.base {
             BaseType::Named(name) => match name.as_str() {
-                "String" => true,
-                "Bool" | "Boolean" => true,
-                "Int" => true,
-                "Float" => true,
-                "ID" => true,
-                _ => false,
+                "String" => GraphQLType::NativeType,
+                "Bool" | "Boolean" => GraphQLType::NativeType,
+                "Int" => GraphQLType::NativeType,
+                "Float" => GraphQLType::NativeType,
+                "ID" => GraphQLType::NativeType,
+                _ => {
+                    if context.is_enum(name.as_str()) {
+                        GraphQLType::EnumType
+                    } else {
+                        GraphQLType::UnknownType
+                    }
+                }
             },
-            BaseType::List(gql_type) => gql_type.is_native_gql_type()?,
+            BaseType::List(gql_type) => gql_type.is_native_gql_type(context)?,
         };
         Ok(result)
     }
