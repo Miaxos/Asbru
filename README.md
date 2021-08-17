@@ -70,9 +70,10 @@ Available schema here:
 
 - [https://asbru-schema-01.herokuapp.com/graphql](https://asbru-schema-01.herokuapp.com/)
 
-## Roadmap
+## Roadmap v0.1.0
 
 * ✅ Manage a configuration files.
+* ✅ Docker build
 * ❌ Codegen a `async_graphql` layout
   - ✅ Object generation layout
   - ✅ Modfiles
@@ -80,9 +81,27 @@ Available schema here:
   - ✅ Rust types on GraphQL scalars
   - ✅ Enum
   - ✅ Simple Query
+  - ❌ Interfaces
+  - ❌ Union
+  - ❌ Mutations
+  - ❌ Connections
 * ❌ Architecture & Connect to services with a directive (at Airbnb it's something like `@serviceBackedNode`).
   - ✅ serviceBackedQuery
-(...)
+  - ❌ serviceBackedNode
+  - ❌ serviceBackedConnection
+
+## Roadmap v1.0.0
+- Infrastructure
+  - ❌ Dataloaders
+  - ❌ Intra-request cache
+  - ❌ Tracing
+  - ❌ Extensions (Apollo Studio)
+- GraphQL
+  - ❌ Subscriptions
+- Directives
+  - ❌ derivedField
+- Transport
+  - ❌ GRPC
 
 
 ## Crate features
