@@ -70,15 +70,18 @@ Available schema here:
 
 - [https://asbru-schema-01.herokuapp.com/graphql](https://asbru-schema-01.herokuapp.com/)
 
-## TODO
+## Roadmap
 
-* ❌ Manage a configuration files.
+* ✅ Manage a configuration files.
 * ❌ Codegen a `async_graphql` layout
   - ✅ Object generation layout
   - ✅ Modfiles
   - ✅ Cargo
   - ✅ Rust types on GraphQL scalars
+  - ✅ Enum
+  - ✅ Simple Query
 * ❌ Architecture & Connect to services with a directive (at Airbnb it's something like `@serviceBackedNode`).
+  - ✅ serviceBackedQuery
 (...)
 
 

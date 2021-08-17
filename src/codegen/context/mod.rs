@@ -16,6 +16,7 @@ use async_graphql_parser::types::{
 use codegen::Scope;
 
 use super::render::cargo::MainFile;
+use super::render::graphql::r#enum::EnumWrapper;
 
 /// The context is like the Scope for the whole codegen, it's where we'll put every options for the
 /// Codegen and every derived settings too.
@@ -121,6 +122,35 @@ impl<'a> Context<'a> {
                 _ => None,
             })
             .collect::<Vec<_>>()
+    }
+
+    /// Enum types
+    pub fn enum_types(&self) -> Vec<EnumWrapper> {
+        self.type_definition()
+            .iter()
+            .filter_map(|type_def| match type_def.kind {
+                TypeKind::Enum(_) => {
+                    // println!("{:?}", type_def);
+                    Some(EnumWrapper {
+                        doc: *type_def,
+                        context: self,
+                    })
+                }
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    }
+
+    /// Check if the given type name is an Enum from the Schema
+    pub fn is_enum(&self, type_name: &str) -> bool {
+        self.type_definition()
+            .iter()
+            .find(|x| x.name.node.as_str() == type_name)
+            .and_then(|x| match x.kind {
+                TypeKind::Enum(_) => Some(x),
+                _ => None,
+            })
+            .is_some()
     }
 
     pub fn directory(&self) -> &Path {

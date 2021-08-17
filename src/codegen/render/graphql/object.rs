@@ -1,7 +1,7 @@
 use crate::codegen::render::graphql::field::FieldDefinitionExt;
 use crate::codegen::{context::Context, generate::GenericErrors, render::render::Render};
 use async_graphql_parser::types::{TypeDefinition, TypeKind};
-use codegen::{Impl, Scope};
+use codegen::{Impl, Scope, Struct};
 
 const DENYLIST: [&str; 2] = ["Mutation", "Subscription"];
 
@@ -28,8 +28,9 @@ impl<'a> ObjectWrapper<'a> {
         scope.import("serde", "Serialize");
         scope.import("serde", "Deserialize");
 
-        let object_struct = scope
-            .new_struct(self.object_name())
+        let mut object_struct = Struct::new(self.object_name());
+
+        object_struct
             .vis("pub")
             .derive("Serialize")
             .derive("Deserialize")
@@ -55,11 +56,14 @@ impl<'a> ObjectWrapper<'a> {
             if len != 0 {
                 return None;
             }
-            x.node.generate_domain_struct(object_struct);
+            x.node
+                .generate_domain_struct(&self.context, &mut scope, &mut object_struct);
             // If it's another entity, we should have only their getting method.
             Some((&x.node.name.node, &x.node.description))
         })
         .collect::<Vec<_>>();
+
+        scope.push_struct(object_struct);
 
         self.context.create_a_new_file(
             format!("domain/{}", &self.domain_name()),
@@ -142,6 +146,6 @@ impl<'a> Render for ObjectWrapper<'a> {
         self.generate_application_file()?;
 
         // Create files
-        Err(GenericErrors::GenericGeneratorError)
+        Ok(())
     }
 }

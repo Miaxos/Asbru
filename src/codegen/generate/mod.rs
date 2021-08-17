@@ -58,19 +58,26 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P, config: P) -> Result<(), Gen
     // we also need the application type
     // we should also add the directive of how it's called
 
-    let result = context
+    let enum_result = context
+        .enum_types()
+        .iter()
+        .map(|x| x.generate())
+        .collect::<Vec<_>>();
+
+    let object_result = context
         .object_types()
         .iter()
         .map(|x| x.generate())
         .collect::<Vec<_>>();
 
     context.generate_services()?;
-    let bl = context.main_file().generate();
-    println!("{:?}", &bl);
+
+    let _ = context.main_file().generate();
 
     println!("|------------------------------|");
     println!("|           Result             |");
     println!("|------------------------------|");
-    println!("{:?}", &result);
+    println!("Enum: {:?}", &enum_result);
+    println!("Objects: {:?}", &object_result);
     Ok(())
 }

@@ -91,3 +91,7 @@ impl ServiceBackedQueryDirective {
 pub struct KeyDirective {
     pub key: String,
 }
+
+pub struct RenameDirective {
+    pub name: String,
+}
