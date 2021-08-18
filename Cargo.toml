@@ -1,6 +1,6 @@
 [package]
 name = "asbru"
-version = "0.0.12"
+version = "0.0.13"
 authors = ["Anthony Griffon <anthony@griffon.one>"]
 description = "A Data-oriented service mesh generator"
 readme = "README.md"
