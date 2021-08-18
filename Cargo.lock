@@ -155,7 +155,7 @@ dependencies = [
 [[package]]
 name = "codegen"
 version = "0.1.3"
-source = "git+ssh://git@github.com/Miaxos/codegen?branch=master#025ebc6d69604e4df294d811821d384e0c3c2b53"
+source = "git+https://github.com/Miaxos/codegen.git?branch=master#025ebc6d69604e4df294d811821d384e0c3c2b53"
 dependencies = [
  "indexmap",
 ]
