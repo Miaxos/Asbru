@@ -2,9 +2,11 @@ use convert_case::{Case, Casing};
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::cell::RefMut;
+use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::io::{Read, Write};
+use std::rc::Rc;
 use std::{fs::File, path::Path};
 
 use crate::codegen::generate::GenericErrors;
@@ -15,8 +17,13 @@ use async_graphql_parser::types::{
 };
 use codegen::Scope;
 
+use self::auto_import::AutoImport;
+
 use super::render::cargo::MainFile;
 use super::render::graphql::r#enum::EnumWrapper;
+use super::render::graphql::union::UnionWrapper;
+
+pub mod auto_import;
 
 /// The context is like the Scope for the whole codegen, it's where we'll put every options for the
 /// Codegen and every derived settings too.
@@ -29,6 +36,7 @@ pub struct Context<'a> {
     // config: &'a Config,
     schema: &'a ServiceDocument,
     main_file: RefCell<MainFile>,
+    hashpath: RefCell<HashMap<String, String>>,
 }
 
 impl<'a> Context<'a> {
@@ -40,11 +48,36 @@ impl<'a> Context<'a> {
         let output = directory.as_ref();
         let main_path = output.join(Path::new("src/main.rs"));
 
-        Self {
+        let hashpath = RefCell::new(HashMap::new());
+
+        let temp = Self {
             config,
             directory: output,
             schema,
             main_file: RefCell::new(MainFile::new(&main_path)),
+            hashpath,
+        };
+
+        let hashpath_2 = &temp.hashpath;
+
+        temp.type_definition().iter().for_each(|type_def| {
+            if let Some((path, name)) = type_def.auto_import_path() {
+                hashpath_2.borrow_mut().insert(name, path);
+            }
+        });
+        temp
+    }
+
+    pub fn get_path<S: AsRef<str>>(&self, name: S) -> Option<String> {
+        self.hashpath
+            .borrow()
+            .get(name.as_ref())
+            .map(|x| x.to_owned())
+    }
+
+    pub fn import_path<S: AsRef<str>>(&self, name: S, scope: &mut Scope) -> () {
+        if let Some(path) = self.hashpath.borrow().get(name.as_ref()) {
+            scope.import(path, name.as_ref());
         }
     }
 
@@ -108,7 +141,7 @@ impl<'a> Context<'a> {
     }
 
     /// Object types
-    pub fn object_types(&self) -> Vec<ObjectWrapper> {
+    pub fn object_types(&'a self) -> Vec<ObjectWrapper<'a>> {
         self.type_definition()
             .iter()
             .filter_map(|type_def| match type_def.kind {
@@ -124,8 +157,22 @@ impl<'a> Context<'a> {
             .collect::<Vec<_>>()
     }
 
+    /// Union types
+    pub fn union_types(&'a self) -> Vec<UnionWrapper<'a>> {
+        self.type_definition()
+            .iter()
+            .filter_map(|type_def| match type_def.kind {
+                TypeKind::Union(_) => Some(UnionWrapper {
+                    doc: *type_def,
+                    context: self,
+                }),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    }
+
     /// Enum types
-    pub fn enum_types(&self) -> Vec<EnumWrapper> {
+    pub fn enum_types(&'a self) -> Vec<EnumWrapper<'a>> {
         self.type_definition()
             .iter()
             .filter_map(|type_def| match type_def.kind {

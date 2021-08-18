@@ -70,6 +70,12 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P, config: P) -> Result<(), Gen
         .map(|x| x.generate())
         .collect::<Vec<_>>();
 
+    let union_result = context
+        .union_types()
+        .iter()
+        .map(|x| x.generate())
+        .collect::<Vec<_>>();
+
     context.generate_services()?;
 
     let _ = context.main_file().generate();
@@ -79,5 +85,6 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P, config: P) -> Result<(), Gen
     println!("|------------------------------|");
     println!("Enum: {:?}", &enum_result);
     println!("Objects: {:?}", &object_result);
+    println!("Unions: {:?}", &union_result);
     Ok(())
 }

@@ -82,7 +82,7 @@ Available schema here:
   - ✅ Enum
   - ✅ Simple Query
   - ❌ Interfaces
-  - ❌ Union
+  - ✅ Union
   - ❌ Mutations
   - ❌ Connections
 * ❌ Architecture & Connect to services with a directive (at Airbnb it's something like `@serviceBackedNode`).

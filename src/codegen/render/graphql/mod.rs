@@ -5,3 +5,4 @@ pub mod field;
 pub mod gql_types;
 pub mod object;
 pub mod scalars;
+pub mod union;
