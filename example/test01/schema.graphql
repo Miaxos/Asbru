@@ -44,12 +44,19 @@ type Subscription {
   badge: Int!
 }
 
-type Pet {
+type PossiblePet {
   id: ID! @fromNumber
   name: String!
   status: PetStatus
   photosUrls: [String] @key(key: "photoUrls")
 }
+
+type ImpossiblePet {
+  id: ID! @fromNumber
+  truc: String!
+}
+
+union Pet = | ImpossiblePet | PossiblePet
 
 enum PetStatus {
   AVAILABLE @rename(name: "available")
