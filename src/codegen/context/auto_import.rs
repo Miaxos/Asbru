@@ -14,6 +14,9 @@ impl AutoImport for TypeDefinition {
         let path = match self.kind {
             TypeKind::Enum(_) => Some((format!("crate::domain::{}", name.to_lowercase()), name)),
             TypeKind::Object(_) => Some((format!("crate::domain::{}", name.to_lowercase()), name)),
+            TypeKind::Interface(_) => {
+                Some((format!("crate::domain::{}", name.to_lowercase()), name))
+            }
             _ => None,
         };
 

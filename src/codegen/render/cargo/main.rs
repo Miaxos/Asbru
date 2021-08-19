@@ -8,7 +8,8 @@ use std::{
 
 use codegen::{Function, Scope};
 
-use crate::codegen::render::render::Render;
+use crate::codegen::context::auto_import::AutoImport;
+use crate::codegen::render::graphql::interfaces::InterfaceWrapper;
 
 /// Structure to manage the main.rs generated file
 pub struct MainFile {
@@ -54,9 +55,22 @@ impl MainFile {
     }
 }
 
-impl Render for MainFile {
+impl MainFile {
     // TODO: Use a shared config
-    fn generate(&self) -> Result<(), crate::codegen::generate::GenericErrors> {
+    pub fn generate(
+        &self,
+        interfaces: Vec<InterfaceWrapper>,
+    ) -> Result<(), crate::codegen::generate::GenericErrors> {
+        let interfaces = interfaces
+            .iter()
+            .map(|x| {
+                let (path, name) = x.doc.auto_import_path().unwrap();
+                self.main_scope().import(&path, &name);
+                format!(".register_type::<{}>()", &name)
+            })
+            .collect::<Vec<String>>()
+            .join("");
+
         let output = &self.path;
         self.main_scope().import("async_graphql", "Schema");
         self.main_scope().import("async_graphql", "EmptyMutation");
@@ -68,10 +82,9 @@ impl Render for MainFile {
         self.main_scope().import("tower", "ServiceBuilder");
 
         self.main_scope().import("domain::query", "Query");
-        self.main_function().line(
+        self.main_function().line(format!(
             r#"
-    let schema = Schema::build(Query::default(), EmptyMutation, EmptySubscription)
-        .finish();
+    let schema = Schema::build(Query::default(), EmptyMutation, EmptySubscription){interfaces}.finish();
 
     let env_port = env::var("PORT")
         .expect("No PORT provided in env variables.");
@@ -91,13 +104,13 @@ impl Render for MainFile {
             |(schema, request): (
                 Schema<Query, EmptyMutation, EmptySubscription>,
                 async_graphql::Request,
-            )| async move {
+            )| async move {{
                 Ok::<_, std::convert::Infallible>(async_graphql_warp::Response::from(
                     schema
                         .execute(request)
                         .await,
                 ))
-            },
+            }},
         );
 
     let filters = graphql_post
@@ -115,7 +128,8 @@ impl Render for MainFile {
 
     Ok(())
         "#,
-        );
+        interfaces = interfaces
+        ));
         let content = self.finalize();
 
         let mut f = fs::File::create(&output)?;
