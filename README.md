@@ -26,6 +26,8 @@ Asbru - A Data-oriented Service Mesh
 /!\ WIP: Asbru won't be usable until version 0.1.0 /!\
 /!\ The target is to have a MVP right now, so the code might be ugly sometimes, it's on purpose to create a prototype first. /!\
 
+This crate use a forked version of `codegen` because `codegen` seems to be unmaintained. When you use a Git version inside your dependencies you can't publish it to crates.io, so new versions won't be published on crates.io until I publish a new crates based on `codegen` with the needed modifications.
+
 `Asbru` is an `async_graphql` Data-oriented Service Mesh generator: it'll generate an `async_graphql` project from a schema with resolvers, dataloaders, data-transformation. It'll create a Data-oriented service mesh from your schema so you'll just have to describe your microservices with your described schema to have a Data-Oriented Service Mesh like Airbnb's.
 
 `Asbru` will be able to send metrics to apollo studio, use dataloaders patterns, store cache data into an external datastorage, be served serverless and even more.
