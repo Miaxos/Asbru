@@ -31,6 +31,8 @@ pub trait FieldDefinitionExt {
         scope: &mut Scope,
         domain_struct: &mut Impl,
     ) -> ();
+
+    fn interface_field_macro(&self) -> String;
 }
 
 impl FieldDefinitionExt for FieldDefinition {
@@ -177,6 +179,7 @@ impl FieldDefinitionExt for FieldDefinition {
 
         let function = impl_struct
             .new_fn(&type_name.to_case(Case::Snake))
+            .vis("pub")
             .set_async(true)
             .doc(
                 &self
@@ -195,12 +198,6 @@ impl FieldDefinitionExt for FieldDefinition {
                 &argument.node.ty.node.to_rust_type(None).unwrap(),
             );
         }
-
-        println!(
-            "{} is {:?}",
-            type_name,
-            type_object.is_native_gql_type(context).unwrap()
-        );
 
         match type_object.is_native_gql_type(context).unwrap() {
             GraphQLType::NativeType => match &*type_object.to_rust_type(None).unwrap() {
@@ -236,6 +233,37 @@ impl FieldDefinitionExt for FieldDefinition {
                 )),
             },
         };
+    }
+
+    fn interface_field_macro(&self) -> String {
+        let gql_type = &self.ty.node;
+        let gql_name = &self.name.node;
+
+        let args = &self
+            .arguments
+            .iter()
+            .map(|x| {
+                format!(
+                    "arg(name = \"{}\", type = \"{}\")",
+                    x.node.name.node.as_str(),
+                    x.node.ty.node.to_rust_type(None).unwrap(),
+                )
+            })
+            .collect::<Vec<String>>();
+
+        let args_len = args.len();
+        let mut args = args.join(",");
+
+        if args_len != 0 {
+            args = format!(",{}", args);
+        }
+
+        format!(
+            "field(name = \"{}\", type = \"{}\"{})",
+            gql_name.as_str(),
+            gql_type.to_rust_type(None).unwrap(),
+            args
+        )
     }
 }
 

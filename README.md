@@ -83,7 +83,7 @@ Available schema here:
   - ✅ Rust types on GraphQL scalars
   - ✅ Enum
   - ✅ Simple Query
-  - ❌ Interfaces
+  - ✅ Interfaces (Do not support interfaces implementing other interfaces)
   - ✅ Union
   - ❌ Mutations
   - ❌ Connections
@@ -98,6 +98,7 @@ Available schema here:
   - ❌ Intra-request cache
   - ❌ Tracing
   - ❌ Extensions (Apollo Studio)
+  - ❌ Interfaces implementing other interfaces
 - GraphQL
   - ❌ Subscriptions
 - Directives

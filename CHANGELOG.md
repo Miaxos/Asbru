@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Feat
+
+- Basic interface support, do not support nested interfaces yet
+
 ## [0.0.13]
 
 ### Feat

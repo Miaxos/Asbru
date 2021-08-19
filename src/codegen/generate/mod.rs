@@ -76,9 +76,17 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P, config: P) -> Result<(), Gen
         .map(|x| x.generate())
         .collect::<Vec<_>>();
 
+    let interfaces_result = context
+        .interface_types()
+        .iter()
+        .map(|x| x.generate())
+        .collect::<Vec<_>>();
+
+    let interfaces = context.interface_types();
+
     context.generate_services()?;
 
-    let _ = context.main_file().generate();
+    let _ = context.main_file().generate(interfaces);
 
     println!("|------------------------------|");
     println!("|           Result             |");
@@ -86,5 +94,6 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P, config: P) -> Result<(), Gen
     println!("Enum: {:?}", &enum_result);
     println!("Objects: {:?}", &object_result);
     println!("Unions: {:?}", &union_result);
+    println!("Interfaces: {:?}", &interfaces_result);
     Ok(())
 }
