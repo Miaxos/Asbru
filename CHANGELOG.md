@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.14]
+
 ### Feat
 
-- Basic interface support, do not support nested interfaces yet
+-   Basic interface support, do not support nested interfaces yet
 
 ## [0.0.13]
 
@@ -99,7 +101,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Boot repo
 
-[Unreleased]: https://github.com/Miaxos/asbru/compare/v0.0.13...HEAD
+[Unreleased]: https://github.com/Miaxos/asbru/compare/v0.0.14...HEAD
+
+[0.0.14]: https://github.com/Miaxos/asbru/compare/v0.0.13...v0.0.14
 
 [0.0.13]: https://github.com/Miaxos/asbru/compare/v0.0.12...v0.0.13
 
