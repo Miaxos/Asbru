@@ -22,7 +22,7 @@ default = []
 [dependencies]
 clap = "2.33.0"
 async-graphql-parser = "2.9.10"
-async-graphql-value = "2.9.10"
+async-graphql-value = "2.9.11"
 anyhow = "1.0.42"
 thiserror = "1.0.26"
 toml = "0.5"
