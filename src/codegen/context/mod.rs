@@ -20,6 +20,7 @@ use codegen::Scope;
 use self::auto_import::AutoImport;
 
 use super::render::cargo::MainFile;
+use super::render::graphql::input::InputWrapper;
 use super::render::graphql::interfaces::InterfaceWrapper;
 use super::render::graphql::r#enum::EnumWrapper;
 use super::render::graphql::union::UnionWrapper;
@@ -133,6 +134,20 @@ impl<'a> Context<'a> {
             .iter()
             .filter_map(|type_def| match type_def.kind {
                 TypeKind::Interface(_) => Some(InterfaceWrapper {
+                    doc: *type_def,
+                    context: self,
+                }),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    }
+
+    /// Schema input
+    pub fn input_types(&'a self) -> Vec<InputWrapper<'a>> {
+        self.type_definition()
+            .iter()
+            .filter_map(|type_def| match type_def.kind {
+                TypeKind::InputObject(_) => Some(InputWrapper {
                     doc: *type_def,
                     context: self,
                 }),

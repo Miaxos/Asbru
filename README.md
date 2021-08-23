@@ -83,18 +83,17 @@ Available schema here:
   - ✅ Rust types on GraphQL scalars
   - ✅ Enum
   - ✅ Simple Query
-  - ✅ Interfaces (Do not support interfaces implementing other interfaces)
+  - ✅ Interfaces (Do not support interfaces implementing other interfaces yet)
   - ✅ Union
-  - ❌ Mutations
   - ❌ Connections
 * ❌ Architecture & Connect to services with a directive (at Airbnb it's something like `@serviceBackedNode`).
   - ✅ serviceBackedQuery
-  - ❌ serviceBackedNode
   - ❌ serviceBackedConnection
 
 ## Roadmap v1.0.0
 - Infrastructure
   - ❌ Dataloaders
+    - ❌ serviceBackedNode
   - ❌ Intra-request cache
   - ❌ Tracing
   - ❌ Extensions (Apollo Studio)
@@ -105,6 +104,8 @@ Available schema here:
   - ❌ derivedField
 - Transport
   - ❌ GRPC
+- Mutations
+  - Mutations are complex mechanisms
 
 
 ## Crate features

@@ -82,6 +82,14 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P, config: P) -> Result<(), Gen
         .map(|x| x.generate())
         .collect::<Vec<_>>();
 
+    /*
+    let input_result = context
+        .input_types()
+        .iter()
+        .map(|x| x.generate())
+        .collect::<Vec<_>>();
+        */
+
     let interfaces = context.interface_types();
 
     context.generate_services()?;
@@ -95,5 +103,6 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P, config: P) -> Result<(), Gen
     println!("Objects: {:?}", &object_result);
     println!("Unions: {:?}", &union_result);
     println!("Interfaces: {:?}", &interfaces_result);
+    // println!("Inputs: {:?}", &input_result);
     Ok(())
 }

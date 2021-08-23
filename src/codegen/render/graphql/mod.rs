@@ -3,6 +3,8 @@ pub mod r#enum;
 pub mod enum_value_definition;
 pub mod field;
 pub mod gql_types;
+pub mod input;
+pub mod input_value_definition;
 pub mod interfaces;
 pub mod object;
 pub mod scalars;

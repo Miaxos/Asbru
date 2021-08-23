@@ -128,13 +128,6 @@ impl<'a> Render for ObjectWrapper<'a> {
             return Ok(());
         };
 
-        // If content is connection or Payload, we do not create the normal process
-        //
-        if object_name.ends_with("Connection") {
-            // todo
-            return Ok(());
-        };
-
         if object_name.ends_with("Payload") {
             // todo
             return Ok(());
