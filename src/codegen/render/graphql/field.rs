@@ -1,4 +1,8 @@
-use crate::codegen::{context::Context, generate::GenericErrors, render::render::Render};
+use crate::codegen::{
+    context::Context,
+    generate::GenericErrors,
+    render::{graphql::scal::asbru_type::AsbruType, render::Render},
+};
 use async_graphql_parser::types::FieldDefinition;
 use async_graphql_value::ConstValue;
 use codegen::{Impl, Scope, Struct};
@@ -124,11 +128,8 @@ impl FieldDefinitionExt for FieldDefinition {
             }
             GraphQLType::EnumType => {
                 scope.import(
-                    &format!(
-                        "crate::domain::{}",
-                        &gql_type.entity_type().unwrap().to_lowercase()
-                    ),
-                    &gql_type.entity_type().unwrap(),
+                    &format!("crate::domain::{}", &gql_type.entity_type().to_lowercase()),
+                    &gql_type.entity_type(),
                 );
 
                 let opt_alias = self
@@ -169,9 +170,9 @@ impl FieldDefinitionExt for FieldDefinition {
                 scope.import(
                     &format!(
                         "crate::domain::{}",
-                        &type_object.entity_type().unwrap().to_lowercase()
+                        &type_object.entity_type().to_lowercase()
                     ),
-                    &type_object.entity_type().unwrap(),
+                    &type_object.entity_type(),
                 );
             }
             _ => {}
@@ -200,7 +201,7 @@ impl FieldDefinitionExt for FieldDefinition {
         }
 
         match type_object.is_native_gql_type(context).unwrap() {
-            GraphQLType::NativeType => match &*type_object.to_rust_type(None).unwrap() {
+            GraphQLType::NativeType => match &*self.to_gql_rust_type(context).unwrap() {
                 "String" => function
                     .line(format!("&self.{}", type_name.to_case(Case::Snake)))
                     .ret("&String"),
@@ -212,11 +213,17 @@ impl FieldDefinitionExt for FieldDefinition {
                     .ret("ID"),
                 _ => function
                     .line(format!("&self.{}", type_name.to_case(Case::Snake)))
-                    .ret(format!("&{}", type_object.to_rust_type(None).unwrap())),
+                    .ret(format!("&{}", self.to_gql_rust_type(context).unwrap())),
             },
             GraphQLType::EnumType => function
                 .line(format!("self.{}", type_name.to_case(Case::Snake)))
                 .ret(format!("{}", type_object.to_rust_type(None).unwrap())),
+            GraphQLType::ConnectionType => {
+                scope.import("async_graphql::connection", "*");
+                function
+                    .line("todo!(\"Connection\")")
+                    .ret(self.to_gql_rust_type(context).unwrap())
+            }
             // Depending of the directives applied, should process the field/query according to it.
             // If not a query, should dataload, if query, should have a serviceBackedQuery and use it
             // to define the behaviour

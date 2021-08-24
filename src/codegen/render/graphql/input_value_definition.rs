@@ -60,11 +60,8 @@ impl InputDefinitionExt for InputValueDefinition {
             }
             GraphQLType::EnumType => {
                 scope.import(
-                    &format!(
-                        "crate::domain::{}",
-                        &gql_type.entity_type().unwrap().to_lowercase()
-                    ),
-                    &gql_type.entity_type().unwrap(),
+                    &format!("crate::domain::{}", &gql_type.entity_type().to_lowercase()),
+                    &gql_type.entity_type(),
                 );
 
                 let type_name = &*gql_type.to_rust_type(None).unwrap();

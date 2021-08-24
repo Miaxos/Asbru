@@ -1,6 +1,6 @@
 use crate::codegen::render::graphql::field::FieldDefinitionExt;
 use crate::codegen::{context::Context, generate::GenericErrors, render::render::Render};
-use async_graphql_parser::types::{TypeDefinition, TypeKind};
+use async_graphql_parser::types::{FieldDefinition, TypeDefinition, TypeKind};
 use codegen::{Impl, Scope, Struct};
 
 const DENYLIST: [&str; 2] = ["Mutation", "Subscription"];
@@ -19,6 +19,15 @@ impl<'a> ObjectWrapper<'a> {
 
     fn domain_name(&self) -> String {
         format!("{}.rs", self.object_name().to_lowercase())
+    }
+
+    pub fn fields(&self) -> Vec<&FieldDefinition> {
+        match &self.doc.kind {
+            TypeKind::Object(object) => object.fields.iter().map(|x| &x.node).collect(),
+            _ => {
+                unreachable!("Should not happen")
+            }
+        }
     }
 
     /// Generate a domain file for the actual type.
@@ -125,6 +134,15 @@ impl<'a> Render for ObjectWrapper<'a> {
         let object_name = self.doc.name.node.as_str();
         // Hacky denylist.
         if DENYLIST.iter().find(|name| **name == object_name).is_some() {
+            return Ok(());
+        };
+
+        // If content is connection or Payload, we do not create the normal process: We do not need
+        // to create a domain file, we just need the parent resolver to return a Connection element
+        // from `async-graphql`.
+        //
+        if object_name.ends_with("Connection") || object_name.ends_with("Edge") {
+            // todo
             return Ok(());
         };
 

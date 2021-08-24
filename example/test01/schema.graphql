@@ -142,7 +142,7 @@ type Me implements User {
   email: String
   age: Int
   active: Bool
-  # friends(first: Int): FriendConnection!
+  friends(first: Int): FriendConnection!
   notifications: [Notification]
   web: String
   # search(text: String!): [SearchResult]

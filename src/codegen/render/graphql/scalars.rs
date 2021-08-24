@@ -7,7 +7,6 @@ pub trait ToRustType {
     /// Internal function, won't check the nullability of the type
     fn type_name(&self, remap_type: Option<&str>) -> Result<String, GenericErrors>;
     /// Transform a Type to a Rust type.
-    /// TODO: Should add Scope to be able to dynamicly add scalars import when needed.
     /// You can remap the last type to what you need if u want
     fn to_rust_type(&self, remap_type: Option<&str>) -> Result<String, GenericErrors>;
 
@@ -17,7 +16,7 @@ pub trait ToRustType {
     /// Get the Entity type without any wrapper.
     /// If you have Option<String> it'll give you String
     /// If you have Vec<Option<Vec<Option<Entity>>>> -> Entity
-    fn entity_type(&self) -> Result<String, GenericErrors>;
+    fn entity_type(&self) -> String;
 }
 
 impl ToRustType for Type {
@@ -42,8 +41,8 @@ impl ToRustType for Type {
         Ok(result)
     }
 
-    fn entity_type(&self) -> Result<String, GenericErrors> {
-        let result = match &self.base {
+    fn entity_type(&self) -> String {
+        match &self.base {
             BaseType::Named(name) => match name.as_str() {
                 "Bool" | "Boolean" => "bool",
                 "Int" => "i32",
@@ -52,9 +51,8 @@ impl ToRustType for Type {
                 _ => name.as_str(),
             }
             .to_string(),
-            BaseType::List(gql_type) => gql_type.entity_type()?,
-        };
-        Ok(result)
+            BaseType::List(gql_type) => gql_type.entity_type(),
+        }
     }
 
     fn to_rust_type(&self, remap_type: Option<&str>) -> Result<String, GenericErrors> {
@@ -74,7 +72,9 @@ impl ToRustType for Type {
                 "Float" => GraphQLType::NativeType,
                 "ID" => GraphQLType::NativeType,
                 _ => {
-                    if context.is_enum(name.as_str()) {
+                    if name.as_str().ends_with("Connection") {
+                        GraphQLType::ConnectionType
+                    } else if context.is_enum(name.as_str()) {
                         GraphQLType::EnumType
                     } else {
                         GraphQLType::UnknownType
