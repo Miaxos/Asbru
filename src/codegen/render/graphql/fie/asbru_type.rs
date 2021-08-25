@@ -21,8 +21,12 @@ pub(crate) trait AsbruFieldExt {
     /// Get associated Field directives
     /// If there are invalid field directives, it'll result in an error.
     fn field_directives(&self) -> Result<Vec<FieldDirectives>, AsbruFieldExtErrors>;
+
     /// There should be only one remap directive
     fn remap_directive(&self) -> Result<Option<RemapDirective>, AsbruFieldExtErrors>;
+
+    /// There should be only one key directive
+    fn key_directive(&self) -> Result<Option<KeyDirective>, AsbruFieldExtErrors>;
 }
 
 impl AsbruFieldExt for FieldDefinition {
@@ -57,6 +61,13 @@ impl AsbruFieldExt for FieldDefinition {
     fn remap_directive(&self) -> Result<Option<RemapDirective>, AsbruFieldExtErrors> {
         Ok(self.field_directives()?.into_iter().find_map(|x| match x {
             FieldDirectives::RemapDirective(x) => Some(x),
+            _ => None,
+        }))
+    }
+
+    fn key_directive(&self) -> Result<Option<KeyDirective>, AsbruFieldExtErrors> {
+        Ok(self.field_directives()?.into_iter().find_map(|x| match x {
+            FieldDirectives::KeyDirective(x) => Some(x),
             _ => None,
         }))
     }

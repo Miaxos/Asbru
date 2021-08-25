@@ -1,6 +1,7 @@
 use crate::codegen::config::Config;
 use crate::codegen::context::Context;
 use crate::codegen::render::cargo::generate_cargo_toml;
+use crate::codegen::render::graphql::scal;
 use crate::codegen::render::render::Render;
 use async_graphql_parser::{parse_schema, types::ServiceDocument};
 use std::fs;
@@ -24,6 +25,8 @@ pub enum GenericErrors {
     InvalidConfigError,
     #[error("Service {0} not found")]
     ServiceNotFoundError(String),
+    #[error("Asbru type error")]
+    AsbruTypeError(#[from] scal::asbru_type::AsbruTypeErrors),
 }
 
 /// Open a file

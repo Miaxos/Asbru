@@ -4,6 +4,7 @@ pub mod enum_value_definition;
 pub mod fie;
 pub mod field;
 pub mod gql_types;
+pub mod inp;
 pub mod input;
 pub mod input_value_definition;
 pub mod interfaces;

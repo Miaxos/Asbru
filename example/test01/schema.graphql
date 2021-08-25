@@ -24,7 +24,7 @@ schema {
 type Query {
   # "userById"
   # userById(id: ID!): Me!,
-  petById(id: ID!): Pet
+  petById("""Comment about an id"""id: ID!): Pet
   @serviceBackedQuery(
     service: "pets",
     methodName: "petGetById"

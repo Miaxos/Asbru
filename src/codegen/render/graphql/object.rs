@@ -1,4 +1,5 @@
 use crate::codegen::render::graphql::field::FieldDefinitionExt;
+use crate::codegen::render::graphql::scal::asbru_type::AsbruType;
 use crate::codegen::{context::Context, generate::GenericErrors, render::render::Render};
 use async_graphql_parser::types::{FieldDefinition, TypeDefinition, TypeKind};
 use codegen::{Impl, Scope, Struct};
@@ -47,30 +48,19 @@ impl<'a> ObjectWrapper<'a> {
             .derive("Default")
             .derive("Clone");
 
-        // Add field for it.
-        let _fields = match &self.doc.kind {
+        // Create a domain struct
+        match &self.doc.kind {
             TypeKind::Object(object) => &object.fields,
             _ => {
                 return Err(GenericErrors::GenericGeneratorError);
             }
         }
         .iter()
-        .filter_map(|x| {
-            // We check if fields have arguments because if they have, they shouldn't be store into
-            // the domain, it means it's a query.
-            //
-            // We should also check directives associated to fields.
-            // In fact we may need a field processing function for domain / application.
-            let len = x.node.arguments.len();
-            if len != 0 {
-                return None;
-            }
+        .for_each(|x| {
             x.node
-                .generate_domain_struct(&self.context, &mut scope, &mut object_struct);
-            // If it's another entity, we should have only their getting method.
-            Some((&x.node.name.node, &x.node.description))
-        })
-        .collect::<Vec<_>>();
+                .struct_field_builder(&self.context, &mut scope, &mut object_struct)
+                .unwrap();
+        });
 
         scope.push_struct(object_struct);
 
@@ -95,28 +85,18 @@ impl<'a> ObjectWrapper<'a> {
         impl_struct.r#macro("#[Object]");
 
         // Add field for it.
-        let _fields = match &self.doc.kind {
+        match &self.doc.kind {
             TypeKind::Object(object) => &object.fields,
             _ => {
                 return Err(GenericErrors::GenericGeneratorError);
             }
         }
         .iter()
-        .map(|x| {
-            // TODO Fields with args
-            let len = x.node.arguments.len();
-            if len != 0 {
-                x.node
-                    .generate_method(&self.context, &mut scope, &mut impl_struct);
-                return None;
-            }
-
+        .try_for_each(|x| {
             x.node
-                .generate_method(&self.context, &mut scope, &mut impl_struct);
-            // .field(&x.node.name.node, format!("{}", &x.node.ty.node.base));
-            Some((&x.node.name.node, &x.node.description))
-        })
-        .collect::<Vec<_>>();
+                .function_field_builder(&self.context, &mut scope, &mut impl_struct)
+                .map(|_| ())
+        })?;
 
         scope.push_impl(impl_struct);
 
