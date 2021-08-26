@@ -88,6 +88,7 @@ Available schema here:
   - ✅ Interfaces (Do not support interfaces implementing other interfaces yet)
   - ✅ Union
   - ❌ Connections
+    - Structure for connection: OK
 * ❌ Architecture & Connect to services with a directive (at Airbnb it's something like `@serviceBackedNode`).
   - ✅ serviceBackedQuery
   - ❌ serviceBackedConnection
@@ -107,6 +108,7 @@ Available schema here:
   - ❌ derivedField
 - Transport
   - ❌ GRPC
+- Error management
 - Mutations
   - Mutations are complex mechanisms
 
