@@ -103,6 +103,7 @@ pub(crate) trait AsbruType {
 struct ConnectionData {
     pub node_field: FieldDefinition,
     pub addition_field_for_edge: Vec<FieldDefinition>,
+    pub addition_field_for_node: Vec<FieldDefinition>,
 }
 
 impl ConnectionData {
@@ -115,12 +116,25 @@ impl ConnectionData {
         }
     }
 
+    /// Give edges fields name to import
+    fn node_fields_name(&self) -> String {
+        if self.addition_field_for_node.len() == 0 {
+            "EmptyFields".to_string()
+        } else {
+            format!("{}AdditionalNodeFields", self.node_field.entity_type())
+        }
+    }
+
     /// Give the struct name and Generate it into the scope.
     fn generate_struct_edges_fields<'a, 'b>(
         &self,
         context: &'a Context,
         scope: &'b mut Scope,
     ) -> String {
+        if self.addition_field_for_edge.len() == 0 {
+            return self.edges_fields_name();
+        }
+
         scope.import("serde", "Serialize");
         scope.import("serde", "Deserialize");
 
@@ -147,6 +161,42 @@ impl ConnectionData {
         scope.push_struct(additional_edges_fields);
         name
     }
+
+    /// Give the struct name and Generate it into the scope.
+    fn generate_struct_node_fields<'a, 'b>(
+        &self,
+        context: &'a Context,
+        scope: &'b mut Scope,
+    ) -> String {
+        if self.addition_field_for_node.len() == 0 {
+            return self.node_fields_name();
+        }
+        scope.import("serde", "Serialize");
+        scope.import("serde", "Deserialize");
+
+        let name = self.node_fields_name();
+        let mut additional_node_fields = Struct::new(&name);
+
+        additional_node_fields
+            .vis("pub")
+            .derive("SimpleObject")
+            .derive("Serialize")
+            .derive("Deserialize")
+            .derive("Debug")
+            .derive("Default")
+            .derive("Clone");
+
+        self.addition_field_for_node
+            .iter()
+            .try_for_each(|x| {
+                x.struct_field_builder(context, scope, &mut additional_node_fields)
+                    .map(|_| ())
+            })
+            .unwrap();
+
+        scope.push_struct(additional_node_fields);
+        name
+    }
 }
 /// When we create a connection, we have to generate more structure than other stuff:
 /// - We need the node type
@@ -155,6 +205,7 @@ impl ConnectionData {
 /// - We need to check for additional fields
 ///
 /// This function will get us these data
+/// TODO: ConnectionData::new
 fn connection_data<'a>(
     context: &'a Context,
     field: &Type,
@@ -181,8 +232,6 @@ fn connection_data<'a>(
         .map(|x| (*x).to_owned())
         .collect::<Vec<FieldDefinition>>();
 
-    println!("CONNECTION: {:?}", edges_additional_fields);
-
     let edge_type_string = edge_type.entity_type();
 
     let edge_object = object_types
@@ -192,6 +241,12 @@ fn connection_data<'a>(
 
     let edge_fields = edge_object.fields();
 
+    let node_additional_fields = edge_fields
+        .iter()
+        .filter(|x| x.name.node.as_str() != "node" && x.name.node.as_str() != "cursor")
+        .map(|x| (*x).to_owned())
+        .collect::<Vec<FieldDefinition>>();
+
     let node_type = edge_fields
         .iter()
         .find(|x| x.name.node.as_str() == "node")
@@ -200,6 +255,7 @@ fn connection_data<'a>(
     Ok(ConnectionData {
         node_field: (*node_type).to_owned(),
         addition_field_for_edge: edges_additional_fields,
+        addition_field_for_node: node_additional_fields,
     })
 }
 
@@ -218,10 +274,11 @@ fn to_rust_type_name(
         let node_type = connection_data.node_field.to_gql_rust_type(context)?;
 
         let additional_edges_fields = connection_data.edges_fields_name();
+        let additional_node_fields = connection_data.node_fields_name();
 
         return Ok(format!(
-            "Connection<{}, {}, {}, EmptyFields>",
-            cursor_type, node_type, additional_edges_fields
+            "Connection<{}, {}, {}, {}>",
+            cursor_type, node_type, additional_edges_fields, additional_node_fields
         ));
     }
 
@@ -467,6 +524,7 @@ impl AsbruType for FieldDefinition {
             GraphQLType::ConnectionType => {
                 let connection_data = connection_data(context, &self.ty.node)?;
                 let _name = connection_data.generate_struct_edges_fields(context, scope);
+                let _add_node_name = connection_data.generate_struct_node_fields(context, scope);
 
                 scope.import(
                     &format!(

@@ -1,16 +1,8 @@
-use crate::codegen::{
-    context::Context,
-    generate::GenericErrors,
-    render::{graphql::scal::asbru_type::AsbruType, render::Render},
-};
+use crate::codegen::{context::Context, generate::GenericErrors, render::render::Render};
 use async_graphql_parser::types::FieldDefinition;
 use async_graphql_value::ConstValue;
 
-use super::{
-    directive::{KeyDirective, ServiceBackedQueryDirective},
-    gql_types::GraphQLType,
-    scalars::ToRustType,
-};
+use super::{directive::ServiceBackedQueryDirective, gql_types::GraphQLType, scalars::ToRustType};
 
 pub trait FieldDefinitionExt {
     fn service_backed_query(&self) -> Option<ServiceBackedQueryDirective>;
