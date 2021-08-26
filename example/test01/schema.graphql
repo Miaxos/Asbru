@@ -91,11 +91,14 @@ type FriendConnection {
 	"""
 	Information to aid in pagination.
 	"""
-	pageInfo: PageInfo!
+  pageInfo: PageInfo!
 	"""
 	A list of edges.
 	"""
 	edges: [FriendEdge]
+	"""
+	Total count of friends.
+	"""
   totalCount: Int!
 }
 

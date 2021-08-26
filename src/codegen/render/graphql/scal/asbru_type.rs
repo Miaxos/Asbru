@@ -3,7 +3,7 @@
 //! Asbru.
 //! This trait should be applied to Field
 use async_graphql_parser::types::{BaseType, FieldDefinition, Type};
-use codegen::{Function, Impl, Scope, Struct};
+use codegen::{Field, Function, Impl, Scope, Struct};
 use thiserror::Error;
 
 use crate::codegen::{
@@ -102,6 +102,51 @@ pub(crate) trait AsbruType {
 
 struct ConnectionData {
     pub node_field: FieldDefinition,
+    pub addition_field_for_edge: Vec<FieldDefinition>,
+}
+
+impl ConnectionData {
+    /// Give edges fields name to import
+    fn edges_fields_name(&self) -> String {
+        if self.addition_field_for_edge.len() == 0 {
+            "EmptyFields".to_string()
+        } else {
+            format!("{}AdditionalEdgesFields", self.node_field.entity_type())
+        }
+    }
+
+    /// Give the struct name and Generate it into the scope.
+    fn generate_struct_edges_fields<'a, 'b>(
+        &self,
+        context: &'a Context,
+        scope: &'b mut Scope,
+    ) -> String {
+        scope.import("serde", "Serialize");
+        scope.import("serde", "Deserialize");
+
+        let name = self.edges_fields_name();
+        let mut additional_edges_fields = Struct::new(&name);
+
+        additional_edges_fields
+            .vis("pub")
+            .derive("SimpleObject")
+            .derive("Serialize")
+            .derive("Deserialize")
+            .derive("Debug")
+            .derive("Default")
+            .derive("Clone");
+
+        self.addition_field_for_edge
+            .iter()
+            .try_for_each(|x| {
+                x.struct_field_builder(context, scope, &mut additional_edges_fields)
+                    .map(|_| ())
+            })
+            .unwrap();
+
+        scope.push_struct(additional_edges_fields);
+        name
+    }
 }
 /// When we create a connection, we have to generate more structure than other stuff:
 /// - We need the node type
@@ -130,6 +175,14 @@ fn connection_data<'a>(
         .find(|x| x.name.node.as_str() == "edges")
         .ok_or(AsbruTypeErrors::NoEdgesItemError)?;
 
+    let edges_additional_fields = connection_fields
+        .iter()
+        .filter(|x| x.name.node.as_str() != "edges" && x.name.node.as_str() != "pageInfo")
+        .map(|x| (*x).to_owned())
+        .collect::<Vec<FieldDefinition>>();
+
+    println!("CONNECTION: {:?}", edges_additional_fields);
+
     let edge_type_string = edge_type.entity_type();
 
     let edge_object = object_types
@@ -146,6 +199,7 @@ fn connection_data<'a>(
 
     Ok(ConnectionData {
         node_field: (*node_type).to_owned(),
+        addition_field_for_edge: edges_additional_fields,
     })
 }
 
@@ -160,13 +214,14 @@ fn to_rust_type_name(
     let ret_type_name = format!("{}", type_gql);
     if ret_type_name.ends_with("Connection!") || ret_type_name.ends_with("Connection") {
         let cursor_type = "String";
-        let node_type = connection_data(context, type_gql)?
-            .node_field
-            .to_gql_rust_type(context)?;
+        let connection_data = connection_data(context, type_gql)?;
+        let node_type = connection_data.node_field.to_gql_rust_type(context)?;
+
+        let additional_edges_fields = connection_data.edges_fields_name();
 
         return Ok(format!(
-            "Connection<{}, {}, EmptyFields, EmptyFields>",
-            cursor_type, node_type
+            "Connection<{}, {}, {}, EmptyFields>",
+            cursor_type, node_type, additional_edges_fields
         ));
     }
 
@@ -276,23 +331,44 @@ impl AsbruType for FieldDefinition {
             .unwrap_or("".to_string());
 
         match graphql_type(&self.ty.node, context) {
-            GraphQLType::NativeType => Ok(domain_struct.field(
-                &format!("{}pub {}", &opt_key, self.name().to_case(Case::Snake)),
-                match &*return_type {
-                    "ID" => "String".to_string(),
-                    _ => return_type,
-                },
-            )),
+            GraphQLType::NativeType => {
+                let mut field = Field::new(
+                    &format!("{}pub {}", &opt_key, self.name().to_case(Case::Snake)),
+                    match &*return_type {
+                        "ID" => "String".to_string(),
+                        _ => return_type,
+                    },
+                );
+
+                // Ugly but it'll work right now.
+                field.doc(vec![&self
+                    .description
+                    .clone()
+                    .map(|x| x.node.as_str().to_string())
+                    .unwrap_or("".to_string())]);
+
+                Ok(domain_struct.push_field(field))
+            }
             GraphQLType::EnumType => {
                 // import enum
                 scope.import(
                     &format!("crate::domain::{}", self.entity_type().to_lowercase()),
                     &self.entity_type(),
                 );
-                Ok(domain_struct.field(
+
+                let mut field = Field::new(
                     &format!("{}pub {}", &opt_key, self.name().to_case(Case::Snake)),
                     return_type,
-                ))
+                );
+
+                // Ugly but it'll work right now.
+                field.doc(vec![&self
+                    .description
+                    .clone()
+                    .map(|x| x.node.as_str().to_string())
+                    .unwrap_or("".to_string())]);
+
+                Ok(domain_struct.push_field(field))
             }
             // Now depending if it's a Node with a backedNode directive or not, we should maybe
             // manage things differently
@@ -306,10 +382,19 @@ impl AsbruType for FieldDefinition {
                     &self.entity_type(),
                 );
 
-                Ok(domain_struct.field(
+                let mut field = Field::new(
                     &format!("{}pub {}", &opt_key, self.name().to_case(Case::Snake)),
                     return_type,
-                ))
+                );
+
+                // Ugly but it'll work right now.
+                field.doc(vec![&self
+                    .description
+                    .clone()
+                    .map(|x| x.node.as_str().to_string())
+                    .unwrap_or("".to_string())]);
+
+                Ok(domain_struct.push_field(field))
                 // Err(AsbruTypeErrors::UnknownError)
             }
         }
@@ -381,6 +466,8 @@ impl AsbruType for FieldDefinition {
             }
             GraphQLType::ConnectionType => {
                 let connection_data = connection_data(context, &self.ty.node)?;
+                let _name = connection_data.generate_struct_edges_fields(context, scope);
+
                 scope.import(
                     &format!(
                         "crate::domain::{}",
