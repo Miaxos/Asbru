@@ -24,7 +24,7 @@ schema {
 type Query {
   # "userById"
   # userById(id: ID!): Me!,
-  petById(id: ID!): Pet
+  petById("""Comment about an id"""id: ID!): Pet
   @serviceBackedQuery(
     service: "pets",
     methodName: "petGetById"
@@ -88,8 +88,54 @@ type Friend implements User {
 }
 
 type FriendConnection {
+	"""
+	Information to aid in pagination.
+	"""
+  pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [FriendEdge]
+	"""
+	Total count of friends.
+	"""
   totalCount: Int!
-  nodes: [Friend]!
+}
+
+"""
+An edge in a connection.
+"""
+type FriendEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Friend!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+"""
+Information about pagination in a connection
+"""
+type PageInfo {
+	"""
+	When paginating backwards, are there more items?
+	"""
+	hasPreviousPage: Boolean!
+	"""
+	When paginating forwards, are there more items?
+	"""
+	hasNextPage: Boolean!
+	"""
+	When paginating backwards, the cursor to continue.
+	"""
+	startCursor: String
+	"""
+	When paginating forwards, the cursor to continue.
+	"""
+	endCursor: String
 }
 
 type Me implements User {
@@ -99,7 +145,7 @@ type Me implements User {
   email: String
   age: Int
   active: Bool
-  # friends(first: Int): FriendConnection!
+  friends(first: Int): FriendConnection!
   notifications: [Notification]
   web: String
   # search(text: String!): [SearchResult]

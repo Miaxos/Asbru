@@ -1,6 +1,7 @@
 use crate::codegen::render::graphql::field::FieldDefinitionExt;
+use crate::codegen::render::graphql::scal::asbru_type::AsbruType;
 use crate::codegen::{context::Context, generate::GenericErrors, render::render::Render};
-use async_graphql_parser::types::{TypeDefinition, TypeKind};
+use async_graphql_parser::types::{FieldDefinition, TypeDefinition, TypeKind};
 use codegen::{Impl, Scope, Struct};
 
 const DENYLIST: [&str; 2] = ["Mutation", "Subscription"];
@@ -21,6 +22,15 @@ impl<'a> ObjectWrapper<'a> {
         format!("{}.rs", self.object_name().to_lowercase())
     }
 
+    pub fn fields(&self) -> Vec<&FieldDefinition> {
+        match &self.doc.kind {
+            TypeKind::Object(object) => object.fields.iter().map(|x| &x.node).collect(),
+            _ => {
+                unreachable!("Should not happen")
+            }
+        }
+    }
+
     /// Generate a domain file for the actual type.
     /// We create a representation for each fields with no arguments and no directive.
     pub fn generate_domain_file(&self) -> Result<(), GenericErrors> {
@@ -38,30 +48,19 @@ impl<'a> ObjectWrapper<'a> {
             .derive("Default")
             .derive("Clone");
 
-        // Add field for it.
-        let _fields = match &self.doc.kind {
+        // Create a domain struct
+        match &self.doc.kind {
             TypeKind::Object(object) => &object.fields,
             _ => {
                 return Err(GenericErrors::GenericGeneratorError);
             }
         }
         .iter()
-        .filter_map(|x| {
-            // We check if fields have arguments because if they have, they shouldn't be store into
-            // the domain, it means it's a query.
-            //
-            // We should also check directives associated to fields.
-            // In fact we may need a field processing function for domain / application.
-            let len = x.node.arguments.len();
-            if len != 0 {
-                return None;
-            }
+        .for_each(|x| {
             x.node
-                .generate_domain_struct(&self.context, &mut scope, &mut object_struct);
-            // If it's another entity, we should have only their getting method.
-            Some((&x.node.name.node, &x.node.description))
-        })
-        .collect::<Vec<_>>();
+                .struct_field_builder(&self.context, &mut scope, &mut object_struct)
+                .unwrap();
+        });
 
         scope.push_struct(object_struct);
 
@@ -86,28 +85,18 @@ impl<'a> ObjectWrapper<'a> {
         impl_struct.r#macro("#[Object]");
 
         // Add field for it.
-        let _fields = match &self.doc.kind {
+        match &self.doc.kind {
             TypeKind::Object(object) => &object.fields,
             _ => {
                 return Err(GenericErrors::GenericGeneratorError);
             }
         }
         .iter()
-        .map(|x| {
-            // TODO Fields with args
-            let len = x.node.arguments.len();
-            if len != 0 {
-                x.node
-                    .generate_method(&self.context, &mut scope, &mut impl_struct);
-                return None;
-            }
-
+        .try_for_each(|x| {
             x.node
-                .generate_method(&self.context, &mut scope, &mut impl_struct);
-            // .field(&x.node.name.node, format!("{}", &x.node.ty.node.base));
-            Some((&x.node.name.node, &x.node.description))
-        })
-        .collect::<Vec<_>>();
+                .function_field_builder(&self.context, &mut scope, &mut impl_struct)
+                .map(|_| ())
+        })?;
 
         scope.push_impl(impl_struct);
 
@@ -128,9 +117,11 @@ impl<'a> Render for ObjectWrapper<'a> {
             return Ok(());
         };
 
-        // If content is connection or Payload, we do not create the normal process
+        // If content is connection or Payload, we do not create the normal process: We do not need
+        // to create a domain file, we just need the parent resolver to return a Connection element
+        // from `async-graphql`.
         //
-        if object_name.ends_with("Connection") {
+        if object_name.ends_with("Connection") || object_name.ends_with("Edge") {
             // todo
             return Ok(());
         };

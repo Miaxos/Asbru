@@ -40,7 +40,7 @@ _Tested at Rust version: `rustc 1.53.0 (53cb7b09b 2021-06-17)`_
 
 ## Rendered GraphQL
 
-The rendered code is split accros three folders following an architecture inspired by the Domain Driven Design with 3 layers:
+The rendered code is split accros three folders following an architecture inspired by the Domain Driven Design with 3 layers, it can also be called an `Hexagonal architecture`:
 
 ```
 | main.rs
@@ -56,6 +56,8 @@ The rendered code is split accros three folders following an architecture inspir
 |   db.rs
 |   ...
 ```
+
+([A simple introducing article in Rust about hexagonal architecture](https://alexis-lozano.com/hexagonal-architecture-in-rust-1/))
 
 `infrastructure` will contains every code and definitions structuring the whole application, each files should describe a high-level API which abstract the implementation, in practise, it might be coupled with the implementation.
 For instance, instead of using directly `reqwest` to do http call, we create a higher level API, which describe how to do a HTTP call, and we provide an implementation for it with `reqwest`.
@@ -83,28 +85,30 @@ Available schema here:
   - ✅ Rust types on GraphQL scalars
   - ✅ Enum
   - ✅ Simple Query
-  - ✅ Interfaces (Do not support interfaces implementing other interfaces)
+  - ✅ Interfaces (Do not support interfaces implementing other interfaces yet)
   - ✅ Union
-  - ❌ Mutations
   - ❌ Connections
 * ❌ Architecture & Connect to services with a directive (at Airbnb it's something like `@serviceBackedNode`).
   - ✅ serviceBackedQuery
-  - ❌ serviceBackedNode
   - ❌ serviceBackedConnection
 
 ## Roadmap v1.0.0
 - Infrastructure
   - ❌ Dataloaders
+    - ❌ serviceBackedNode
   - ❌ Intra-request cache
   - ❌ Tracing
   - ❌ Extensions (Apollo Studio)
   - ❌ Interfaces implementing other interfaces
 - GraphQL
   - ❌ Subscriptions
+  - ❌ GraphQL Subsets
 - Directives
   - ❌ derivedField
 - Transport
   - ❌ GRPC
+- Mutations
+  - Mutations are complex mechanisms
 
 
 ## Crate features

@@ -4,5 +4,6 @@
 pub enum GraphQLType {
     NativeType,
     EnumType,
+    ConnectionType,
     UnknownType,
 }

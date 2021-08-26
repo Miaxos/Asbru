@@ -1,21 +1,16 @@
 use crate::codegen::{context::Context, generate::GenericErrors, render::render::Render};
 use async_graphql_parser::types::FieldDefinition;
 use async_graphql_value::ConstValue;
-use codegen::{Impl, Scope, Struct};
-use convert_case::{Case, Casing};
 
-use super::{
-    directive::{KeyDirective, ServiceBackedQueryDirective},
-    gql_types::GraphQLType,
-    scalars::ToRustType,
-};
+use super::{directive::ServiceBackedQueryDirective, gql_types::GraphQLType, scalars::ToRustType};
 
 pub trait FieldDefinitionExt {
     fn service_backed_query(&self) -> Option<ServiceBackedQueryDirective>;
     fn from_number(&self) -> bool;
-    fn key_directive(&self) -> Option<KeyDirective>;
+    // fn key_directive(&self) -> Option<KeyDirective>;
     fn is_native_gql_type<'a>(&self, context: &'a Context) -> Result<GraphQLType, GenericErrors>;
 
+    /*
     /// Add a field to a structure
     fn generate_domain_struct<'a>(
         &self,
@@ -23,7 +18,9 @@ pub trait FieldDefinitionExt {
         scope: &mut Scope,
         domain_struct: &mut Struct,
     ) -> ();
+    */
 
+    /*
     /// From a field, generate the associated method
     fn generate_method<'a>(
         &self,
@@ -31,6 +28,7 @@ pub trait FieldDefinitionExt {
         scope: &mut Scope,
         domain_struct: &mut Impl,
     ) -> ();
+    */
 
     fn interface_field_macro(&self) -> String;
 }
@@ -59,6 +57,7 @@ impl FieldDefinitionExt for FieldDefinition {
         })
     }
 
+    /*
     fn key_directive(&self) -> Option<KeyDirective> {
         let directive = self
             .directives
@@ -73,6 +72,7 @@ impl FieldDefinitionExt for FieldDefinition {
         .to_owned();
         Some(KeyDirective { key })
     }
+    */
 
     fn from_number(&self) -> bool {
         let from_number = &self
@@ -88,6 +88,7 @@ impl FieldDefinitionExt for FieldDefinition {
         self.ty.node.is_native_gql_type(context)
     }
 
+    /*
     fn generate_domain_struct<'a>(
         &self,
         context: &'a Context,
@@ -124,11 +125,8 @@ impl FieldDefinitionExt for FieldDefinition {
             }
             GraphQLType::EnumType => {
                 scope.import(
-                    &format!(
-                        "crate::domain::{}",
-                        &gql_type.entity_type().unwrap().to_lowercase()
-                    ),
-                    &gql_type.entity_type().unwrap(),
+                    &format!("crate::domain::{}", &gql_type.entity_type().to_lowercase()),
+                    &gql_type.entity_type(),
                 );
 
                 let opt_alias = self
@@ -154,86 +152,95 @@ impl FieldDefinitionExt for FieldDefinition {
             }
         }
     }
+    */
 
-    fn generate_method<'a>(
-        &self,
-        context: &'a Context,
-        scope: &mut Scope,
-        impl_struct: &mut Impl,
-    ) -> () {
-        let type_object = &self.ty.node;
-        let type_name = &self.name.node;
+    /*
+        fn generate_method<'a>(
+            &self,
+            context: &'a Context,
+            scope: &mut Scope,
+            impl_struct: &mut Impl,
+        ) -> () {
+            let type_object = &self.ty.node;
+            let type_name = &self.name.node;
 
-        match type_object.is_native_gql_type(context).unwrap() {
-            GraphQLType::EnumType | GraphQLType::UnknownType => {
-                scope.import(
-                    &format!(
-                        "crate::domain::{}",
-                        &type_object.entity_type().unwrap().to_lowercase()
-                    ),
-                    &type_object.entity_type().unwrap(),
+            match type_object.is_native_gql_type(context).unwrap() {
+                GraphQLType::EnumType | GraphQLType::UnknownType => {
+                    scope.import(
+                        &format!(
+                            "crate::domain::{}",
+                            &type_object.entity_type().to_lowercase()
+                        ),
+                        &type_object.entity_type(),
+                    );
+                }
+                _ => {}
+            }
+
+            let function = impl_struct
+                .new_fn(&type_name.to_case(Case::Snake))
+                .vis("pub")
+                .set_async(true)
+                .doc(
+                    &self
+                        .description
+                        .as_ref()
+                        .map(|x| x.node.as_ref())
+                        .unwrap_or(""),
+                )
+                // Scalar type
+                .arg_ref_self();
+
+            // TODO: Should add description for inputs
+            for argument in self.arguments.iter() {
+                function.arg(
+                    argument.node.name.node.as_str(),
+                    &argument.node.ty.node.to_rust_type(None).unwrap(),
                 );
             }
-            _ => {}
-        }
 
-        let function = impl_struct
-            .new_fn(&type_name.to_case(Case::Snake))
-            .vis("pub")
-            .set_async(true)
-            .doc(
-                &self
-                    .description
-                    .as_ref()
-                    .map(|x| x.node.as_ref())
-                    .unwrap_or(""),
-            )
-            // Scalar type
-            .arg_ref_self();
-
-        // TODO: Should add description for inputs
-        for argument in self.arguments.iter() {
-            function.arg(
-                argument.node.name.node.as_str(),
-                &argument.node.ty.node.to_rust_type(None).unwrap(),
-            );
-        }
-
-        match type_object.is_native_gql_type(context).unwrap() {
-            GraphQLType::NativeType => match &*type_object.to_rust_type(None).unwrap() {
-                "String" => function
-                    .line(format!("&self.{}", type_name.to_case(Case::Snake)))
-                    .ret("&String"),
-                "ID" => function
-                    .line(format!(
-                        "self.{}.clone().into()",
-                        type_name.to_case(Case::Snake)
-                    ))
-                    .ret("ID"),
-                _ => function
-                    .line(format!("&self.{}", type_name.to_case(Case::Snake)))
-                    .ret(format!("&{}", type_object.to_rust_type(None).unwrap())),
-            },
-            GraphQLType::EnumType => function
-                .line(format!("self.{}", type_name.to_case(Case::Snake)))
-                .ret(format!("{}", type_object.to_rust_type(None).unwrap())),
-            // Depending of the directives applied, should process the field/query according to it.
-            // If not a query, should dataload, if query, should have a serviceBackedQuery and use it
-            // to define the behaviour
-            _ => match self.service_backed_query() {
-                Some(directive) => {
-                    directive.generate_method_definition(context, &self, scope, function);
+            match type_object.is_native_gql_type(context).unwrap() {
+                GraphQLType::NativeType => match &*self.to_gql_rust_type(context).unwrap() {
+                    "String" => function
+                        .line(format!("&self.{}", type_name.to_case(Case::Snake)))
+                        .ret("&String"),
+                    "ID" => function
+                        .line(format!(
+                            "self.{}.clone().into()",
+                            type_name.to_case(Case::Snake)
+                        ))
+                        .ret("ID"),
+                    _ => function
+                        .line(format!("&self.{}", type_name.to_case(Case::Snake)))
+                        .ret(format!("&{}", self.to_gql_rust_type(context).unwrap())),
+                },
+                GraphQLType::EnumType => function
+                    .line(format!("self.{}", type_name.to_case(Case::Snake)))
+                    .ret(format!("{}", type_object.to_rust_type(None).unwrap())),
+                GraphQLType::ConnectionType => {
+                    scope.import("async_graphql::connection", "*");
                     function
+                        .line("todo!(\"Connection\")")
+                        .ret(self.to_gql_rust_type(context).unwrap())
                 }
-                // We should check if it's an enum for instance, because if it's an enum, we should
-                // try to match the actual
-                None => function.line(format!("todo!(\"WIP\")")).ret(format!(
-                    "FieldResult<{}>",
-                    type_object.to_rust_type(None).unwrap()
-                )),
-            },
-        };
-    }
+                // Depending of the directives applied, should process the field/query according to it.
+                // If not a query, should dataload, if query, should have a serviceBackedQuery and use it
+                // to define the behaviour
+                _ => match self.service_backed_query() {
+                    Some(directive) => {
+                        directive.generate_method_definition(context, &self, scope, function);
+                        function
+                    }
+                    // We should check if it's an enum for instance, because if it's an enum, we should
+                    // try to match the actual
+                    None => function.line(format!("todo!(\"WIP\")")).ret(format!(
+                        "FieldResult<{}>",
+                        type_object.to_rust_type(None).unwrap()
+                    )),
+                },
+            };
+        }
+    */
 
     fn interface_field_macro(&self) -> String {
         let gql_type = &self.ty.node;

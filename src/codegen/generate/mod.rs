@@ -1,6 +1,7 @@
 use crate::codegen::config::Config;
 use crate::codegen::context::Context;
 use crate::codegen::render::cargo::generate_cargo_toml;
+use crate::codegen::render::graphql::scal;
 use crate::codegen::render::render::Render;
 use async_graphql_parser::{parse_schema, types::ServiceDocument};
 use std::fs;
@@ -24,6 +25,8 @@ pub enum GenericErrors {
     InvalidConfigError,
     #[error("Service {0} not found")]
     ServiceNotFoundError(String),
+    #[error("Asbru type error")]
+    AsbruTypeError(#[from] scal::asbru_type::AsbruTypeErrors),
 }
 
 /// Open a file
@@ -82,6 +85,14 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P, config: P) -> Result<(), Gen
         .map(|x| x.generate())
         .collect::<Vec<_>>();
 
+    /*
+    let input_result = context
+        .input_types()
+        .iter()
+        .map(|x| x.generate())
+        .collect::<Vec<_>>();
+        */
+
     let interfaces = context.interface_types();
 
     context.generate_services()?;
@@ -95,5 +106,6 @@ pub fn generate<P: AsRef<Path>>(path: P, output: P, config: P) -> Result<(), Gen
     println!("Objects: {:?}", &object_result);
     println!("Unions: {:?}", &union_result);
     println!("Interfaces: {:?}", &interfaces_result);
+    // println!("Inputs: {:?}", &input_result);
     Ok(())
 }

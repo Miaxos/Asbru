@@ -92,6 +92,15 @@ pub struct KeyDirective {
     pub key: String,
 }
 
+pub struct RemapDirective {
+    pub remap_to: String,
+}
+
+pub enum FieldDirectives {
+    KeyDirective(KeyDirective),
+    RemapDirective(RemapDirective),
+}
+
 pub struct RenameDirective {
     pub name: String,
 }
