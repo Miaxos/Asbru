@@ -23,6 +23,8 @@ Asbru - A Data-oriented Service Mesh
 <br />
 <br />
 
+[WIP - Book](https://miaxos.github.io/Asbru/)
+
 /!\ WIP: Asbru won't be usable until version 0.1.0 /!\
 /!\ The target is to have a MVP right now, so the code might be ugly sometimes, it's on purpose to create a prototype first. /!\
 
