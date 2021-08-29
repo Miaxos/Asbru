@@ -1,0 +1,298 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Absru Book</title>
+                <meta name="robots" content="noindex" />
+                
+
+        <!-- Custom HTML head -->
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="The Absru associated book">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+                <link rel="icon" href="favicon.svg">
+                        <link rel="shortcut icon" href="favicon.png">
+                <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+                <link rel="stylesheet" href="css/print.css" media="print">
+        
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+                <link rel="stylesheet" href="fonts/fonts.css">
+        
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+            </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="quickstart.html"><strong aria-hidden="true">2.</strong> Quickstart</a></li><li class="chapter-item expanded "><a href="roadmap.html"><strong aria-hidden="true">3.</strong> Roadmap</a></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">4.</strong> Configuration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="services.html"><strong aria-hidden="true">4.1.</strong> Services</a></li><li class="chapter-item expanded "><a href="extensions.html"><strong aria-hidden="true">4.2.</strong> Extensions</a></li></ol></li><li class="chapter-item expanded "><a href="architecture.html"><strong aria-hidden="true">5.</strong> Architecture</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">5.1.</strong> Configuration</div></li></ol></li><li class="chapter-item expanded "><a href="schema.html"><strong aria-hidden="true">6.</strong> Schema</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="directives.html"><strong aria-hidden="true">6.1.</strong> Directives</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="data_directives.html"><strong aria-hidden="true">6.1.1.</strong> Data Directives</a></li></ol></li></ol></li></ol>            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                                                <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                                            </div>
+
+                    <h1 class="menu-title">Absru Book</h1>
+
+                    <div class="right-buttons">
+                                                <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                                                                        
+                    </div>
+                </div>
+
+                                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
+<p><code>Asbru</code> is an <code>async_graphql</code> Data-oriented Service Mesh generator: it'll generate an <code>async_graphql</code> project from a schema with resolvers, dataloaders, data-transformation. It'll create a Data-oriented service mesh from your schema so you'll just have to describe your microservices with your described schema to have a Data-Oriented Service Mesh like Airbnb's.</p>
+<p>It aims to be fully compatible with the Relay GraphQL specification and most of its extensions and offers type safety and high performance thanks to the <code>async-graphql</code> crates.</p>
+<h2 id="warnings"><a class="header" href="#warnings">Warnings</a></h2>
+<p>We follow the SemVer, so he <code>Asbru</code> project won't be usable before the <code>0.1.0 release</code> and won't be stable before the <code>1.0.0 release</code>.</p>
+<p>This <code>book</code> is still a <em>work in progress</em>.</p>
+<h2 id="origin"><a class="header" href="#origin">Origin</a></h2>
+<p>The whole project comes from <a href="https://www.youtube.com/watch?v=xxk9MWCk7cM">an awesome talk</a> and a <a href="https://medium.com/airbnb-engineering/taming-service-oriented-architecture-using-a-data-oriented-service-mesh-da771a841344">closed-source project from Airbnb named Viaduct</a>. I suggest you to read it, it's very interesting! The following and the whole project is inspired by this article.</p>
+<h2 id="what-is-a-data-oriented-service-mesh"><a class="header" href="#what-is-a-data-oriented-service-mesh">What is a Data-Oriented Service Mesh?</a></h2>
+<p>In most entrprise, we have a lot of microservices. It can be thousands to tens of thousands microservices connected together. We have dependencies everywhere between microservices.</p>
+<p>&lt;Insérer image qui représente un SOA ici.&gt;</p>
+<p>The whole purpose of a Data-Oriented Service Mesh is to create a service, which is a service mesh, which will be able to know where the data is located and will be able to route every request we have to the instances of microservices able to handle them.</p>
+<p>We will try to create GraphQL to create a Data-Oriented Service mesh where the whole business structure is represented so services won't have to talk to each other directly but will be able to only talk to this GraphQL endpoint.</p>
+<p>You could even modelize your whole public API through an Asbru endpoint.</p>
+<p>With this modelisation, the only service which know how to compose data from your services is the Asbru endpoint, so you don't have to manage every dependencies inside your microservices.</p>
+<h2 id="why-do-this"><a class="header" href="#why-do-this">Why do this?</a></h2>
+<p>I enjoy using GraphQL and Rust, I was very impressed by the work from Sunli on <code>async_graphql</code>, I wanted to play my part with the Rust / GraphQL ecosystem and I saw the incredible article which described <code>Viaduct</code> from Airbnb. It's a closed source project (at least in 2021) and I though it would be awesome to have this kind of project with <code>async_graphql</code>. So I am doing this.</p>
+<h2 id="how-to-contribute"><a class="header" href="#how-to-contribute">How to contribute?</a></h2>
+<p>You can contribute to the project by creating issues, proposing ideas, suggesting ideas, coding things, whatever you want, I'm eager to know what you think of it. If you are looking for a code of conduct to follow, please follow the <a href="https://www.rust-lang.org/policies/code-of-conduct">Rust code of conduct</a>. It's just common sense, and be nice ❤️.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="quickstart"><a class="header" href="#quickstart">Quickstart</a></h1>
+<p>To create a basic schema with <code>Asbru</code>, just use:</p>
+<pre><code>asbru \
+  --config example/test01/config.toml \
+  --schema example/test01/schema.graphql \
+  --output example/test01result/
+</code></pre>
+<p>This schema is a schema used to develop <code>Asbru</code>, you can access this generated schema at this address: <a href="https://asbru-schema-01.herokuapp.com/graphql">https://asbru-schema-01.herokuapp.com/graphql</a>.</p>
+<p>Feel free to use <a href="https://apis.guru/graphql-voyager/">GraphQL Voyager</a> to explore the generated schema.</p>
+<h2 id="docker"><a class="header" href="#docker">Docker</a></h2>
+<p>We provide a docker file example to create a docker image from a schema and a config file.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="roadmap"><a class="header" href="#roadmap">Roadmap</a></h1>
+<p>The <code>Asbru</code> Roadmap, no deadlines are indicated because it's an open-source project where I don't get paid to work on it.</p>
+<h2 id="010-release"><a class="header" href="#010-release">0.1.0 Release</a></h2>
+<p>The 0.1.0 release aims to provide a working GraphQL Gateway with <code>Queries</code> and <code>Connections</code>. No caching strategy are expected. The whole point for this release is to create a main structure to iterate.</p>
+<h2 id="100-release"><a class="header" href="#100-release">1.0.0 Release</a></h2>
+<p>The 1.0.0 Release aims to provide a working Data-Oriented Service Mesh usable from the entreprise to the solo dev prototyping an application.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="configuration"><a class="header" href="#configuration">Configuration</a></h1>
+<p>You can configure <code>Asbru</code> with a lot of options to create your GraphQL API.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="services"><a class="header" href="#services">Services</a></h1>
+<p>When you create a <code>Asbru</code> project you have to describe how your data is going to be fetched. There are multiple transports possible.</p>
+<p>Your services should be describe inside a <code>config.toml</code> file which will gather your whole project configuration.</p>
+<h2 id="transports"><a class="header" href="#transports">Transports</a></h2>
+<h3 id="http"><a class="header" href="#http">HTTP</a></h3>
+<p>An example of a service definition for an HTTP service:</p>
+<pre><code class="language-toml">[services]
+
+# Beer API Based on Open Brewery DB
+# https://www.openbrewerydb.org/documentation/01-listbreweries
+# A Good use case to work with Connection and pagination with the list
+# https://api.openbrewerydb.org/breweries
+# [services.beers]
+# transport = { HTTP = { endpoint = &quot;https://api.openbrewerydb.org/breweries&quot;, method = &quot;GET&quot; } }
+
+# Pets store API
+# Usefull for test
+[services.pets.transport]
+type = &quot;HTTP&quot;
+
+[services.pets.transport.info]
+endpoint = &quot;https://petstore3.swagger.io/api/v3/&quot;
+
+[services.pets.transport.info.method.petGetById]
+route = &quot;pet/{id}&quot;
+http_method = &quot;GET&quot;
+
+[services.pets.transport.info.method.placeOrderForAPet]
+route = &quot;store/order&quot;
+http_method = &quot;POST&quot;
+body_args = [&quot;id&quot;, &quot;petId&quot;, &quot;quantity&quot;, &quot;shipDate&quot;, &quot;status&quot;, &quot;complete&quot;]
+</code></pre>
+<h2 id="generation"><a class="header" href="#generation">Generation</a></h2>
+<p>Every service definition won't generate anything until you use a <code>fetch directive</code> associated.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="extensions"><a class="header" href="#extensions">Extensions</a></h1>
+<p>/!\ This part is not working right now /!</p>
+<p>Inside the configuration file, you can also define which extensions should be used and how. <code>Asbru</code> provides out of the box several extensions implementations to allow you to create a powerfull GraphQL API.</p>
+<h2 id="apollo-studio"><a class="header" href="#apollo-studio">Apollo Studio</a></h2>
+<p>Apollo studio is an Apollo Service which allow you to add an observability tool to your GraphQL API.</p>
+<p><code>async-graphql</code> has an extension to create &amp; send your graphql metrics to Apollo Studio: <a href="https://github.com/async-graphql/async_graphql_apollo_studio_extension">async_graphql_apollo_studio_extension</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
+<p>This chapter will describe how <code>Asbru</code> is working internally to create a working <code>async-graphql</code> project from your schema definitions.</p>
+<h2 id="layered-architecture"><a class="header" href="#layered-architecture">Layered architecture</a></h2>
+<p><code>Asbru</code> will generate a compilable <code>async_graphql</code> project based on an opinniated <strong>layered Architecture</strong> <em>(c.f. Domain Driven Design p.68)</em>.</p>
+<p>A layered Architecture is an architecture which divide an application into 3 main sub-parts:</p>
+<pre><code>  - The applicative layer
+  - The domain layer
+  - The infrastructure layer
+</code></pre>
+<p>The whole purpose of this architecture is to be able to modelize your business rules and entities and separate them from the implementation details.</p>
+<p><em>You can change a layer without having to change other layers.</em></p>
+<p>The typical structure of a software built with this architecture is that top layer is able to import sub-layers but sub-layers can't import top-layers.</p>
+<h3 id="applicative-layer"><a class="header" href="#applicative-layer">Applicative layer</a></h3>
+<p>The applicative layer will be responsible to modelize your GraphQL schema, it'll represent the whole generated schema and describe how <code>async-graphql</code> should get data when a field is requested.</p>
+<h3 id="domain-layer"><a class="header" href="#domain-layer">Domain layer</a></h3>
+<p>The domain layer is the core layer of this architecture, it's where your business rules are represented. It means in our case, it's where your internal data representation is represented and it's where we'll store our dataloaders modelisation.</p>
+<h3 id="infrastructure-layer"><a class="header" href="#infrastructure-layer">Infrastructure layer</a></h3>
+<p>The infrastructure layer will manage every connection to external services, extensions, logging, metrics and monitoring which will be used by the other layers.</p>
+<h3 id="opiniated-implementation"><a class="header" href="#opiniated-implementation">Opiniated Implementation</a></h3>
+<p>I'm not an expert in Domain Driven Design, so I did my implementation of it, if you want to give feedback about this, do not hesitate to participate within Github. It's an open-source project :-).</p>
+<h2 id="steps"><a class="header" href="#steps">Steps</a></h2>
+<ul>
+<li>First of all, we check if the configuration is correct, the configuration will have multiple elements: <code>extensions</code>, <code>services</code>.</li>
+<li>Then we parse the whole graphql schema with <code>async-graphql-parser</code>.</li>
+<li>We iterate over types to create struct &amp; methods</li>
+<li>It's done</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="schema"><a class="header" href="#schema">Schema</a></h1>
+<p><code>Asbru</code> is a Schema driven tool: you have to define your schema to generate the corresponding GraphQL api.</p>
+<p><code>Asbru</code> will also generate resolvers based on directives applied to your schema.</p>
+<div style="break-before: page; page-break-before: always;"></div><div style="break-before: page; page-break-before: always;"></div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                        
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                            </nav>
+
+        </div>
+
+        
+        
+        
+                <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+        
+                <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+                        <script type="text/javascript">
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+                
+    </body>
+</html>
