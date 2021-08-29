@@ -18,8 +18,8 @@ jobs:
       - name: Render book
         run: |
           mdbook build -d gh-pages docs/en
-          mkdir docs
-          mv docs/en/gh-pages/ docs/
+          mkdir gh-pages
+          mv docs/en/gh-pages .
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
