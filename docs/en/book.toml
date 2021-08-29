@@ -1,0 +1,6 @@
+[book]
+authors = ["Anthony Griffon (Miaxos) <an.griffon@gmail.com>"]
+description = "The Absru associated book"
+src = "src"
+language = "en"
+title = "Absru Book"
