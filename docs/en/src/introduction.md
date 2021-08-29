@@ -9,7 +9,7 @@ It aims to be fully compatible with the Relay GraphQL specification and most of 
 
 We follow the SemVer, so he `Asbru` project won't be usable before the `0.1.0 release` and won't be stable before the `1.0.0 release`.
 
-This `book` is still a *work in progress*.
+This `book` is still a work in progress.
 
 
 ## Origin
