@@ -21,7 +21,7 @@ default = []
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 clap = "2.33.0"
-async-graphql-parser = "2.9.10"
+async-graphql-parser = "2.10.0"
 async-graphql-value = "2.9.10"
 anyhow = "1.0.42"
 thiserror = "1.0.26"
